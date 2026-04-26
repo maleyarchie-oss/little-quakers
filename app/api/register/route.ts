@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { sendConfirmationEmail } from '@/lib/email'
-import { uploadFileToDrive } from '@/lib/google'
+import { uploadDocument } from '@/lib/storage'
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,26 +15,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Registration is currently closed.' }, { status: 403 })
     }
 
-    // Upload documents to Google Drive — non-blocking, won't crash registration if it fails
-    const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID || ''
+    // Upload documents to Supabase Storage
     let birthCertUrl = null
     let reportCardUrl = null
 
     const bcFile = form.get('birth_certificate') as File | null
-    if (bcFile && bcFile.size > 0 && folderId) {
+    if (bcFile && bcFile.size > 0) {
       try {
         const buf = Buffer.from(await bcFile.arrayBuffer())
-        birthCertUrl = await uploadFileToDrive(buf, `${playerName} - Birth Certificate - ${bcFile.name}`, bcFile.type, folderId)
+        birthCertUrl = await uploadDocument(buf, `${playerName} - Birth Certificate - ${bcFile.name}`, bcFile.type)
       } catch (e) {
         console.error('Birth cert upload failed:', e)
       }
     }
 
     const rcFile = form.get('report_card') as File | null
-    if (rcFile && rcFile.size > 0 && folderId) {
+    if (rcFile && rcFile.size > 0) {
       try {
         const buf = Buffer.from(await rcFile.arrayBuffer())
-        reportCardUrl = await uploadFileToDrive(buf, `${playerName} - Report Card - ${rcFile.name}`, rcFile.type, folderId)
+        reportCardUrl = await uploadDocument(buf, `${playerName} - Report Card - ${rcFile.name}`, rcFile.type)
       } catch (e) {
         console.error('Report card upload failed:', e)
       }
