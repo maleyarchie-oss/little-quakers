@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { sendConfirmationEmail } from '@/lib/email'
-import { uploadFileToDrive, getOrCreateRegistrantsFolder } from '@/lib/google'
+import { uploadFileToDrive } from '@/lib/google'
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,40 +10,36 @@ export async function POST(req: NextRequest) {
     const get = (k: string) => form.get(k) as string | null
     const playerName = `${get('player_first_name')} ${get('player_last_name')}`
 
-    // Fetch settings for tryout info and folder
     const { data: settings } = await supabaseAdmin.from('settings').select('*').single()
     if (!settings?.registration_open) {
       return NextResponse.json({ error: 'Registration is currently closed.' }, { status: 403 })
     }
 
-    // Upload documents to Google Drive
-    const folderId = await getOrCreateRegistrantsFolder()
+    // Upload documents to Google Drive — non-blocking, won't crash registration if it fails
+    const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID || ''
     let birthCertUrl = null
     let reportCardUrl = null
 
     const bcFile = form.get('birth_certificate') as File | null
-    if (bcFile && bcFile.size > 0) {
-      const buf = Buffer.from(await bcFile.arrayBuffer())
-      birthCertUrl = await uploadFileToDrive(
-        buf,
-        `${playerName} - Birth Certificate - ${bcFile.name}`,
-        bcFile.type,
-        folderId
-      )
+    if (bcFile && bcFile.size > 0 && folderId) {
+      try {
+        const buf = Buffer.from(await bcFile.arrayBuffer())
+        birthCertUrl = await uploadFileToDrive(buf, `${playerName} - Birth Certificate - ${bcFile.name}`, bcFile.type, folderId)
+      } catch (e) {
+        console.error('Birth cert upload failed:', e)
+      }
     }
 
     const rcFile = form.get('report_card') as File | null
-    if (rcFile && rcFile.size > 0) {
-      const buf = Buffer.from(await rcFile.arrayBuffer())
-      reportCardUrl = await uploadFileToDrive(
-        buf,
-        `${playerName} - Report Card - ${rcFile.name}`,
-        rcFile.type,
-        folderId
-      )
+    if (rcFile && rcFile.size > 0 && folderId) {
+      try {
+        const buf = Buffer.from(await rcFile.arrayBuffer())
+        reportCardUrl = await uploadFileToDrive(buf, `${playerName} - Report Card - ${rcFile.name}`, rcFile.type, folderId)
+      } catch (e) {
+        console.error('Report card upload failed:', e)
+      }
     }
 
-    // Insert registrant
     const { error } = await supabaseAdmin.from('registrants').insert({
       player_first_name: get('player_first_name'),
       player_last_name: get('player_last_name'),
@@ -74,7 +70,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to save registration.' }, { status: 500 })
     }
 
-    // Send confirmation email
     const email = get('email')
     if (email) {
       await sendConfirmationEmail(email, playerName, {
