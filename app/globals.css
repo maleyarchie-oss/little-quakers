@@ -1,26 +1,57 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --gold: #B8962A;
+  --gold-light: #D4AF37;
+  --gold-dark: #8B7020;
+  --black: #0A0A0A;
+  --off-white: #F5F4F0;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #F5F4F0;
+  color: #0A0A0A;
 }
+
+.btn-primary {
+  @apply bg-[#B8962A] text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors cursor-pointer border-0 text-center inline-block;
+}
+.btn-primary:hover { @apply bg-[#8B7020]; }
+
+.btn-secondary {
+  @apply bg-transparent text-[#B8962A] font-bold py-4 px-8 rounded-lg text-lg transition-all cursor-pointer border-2 border-[#B8962A] text-center inline-block;
+}
+.btn-secondary:hover { @apply bg-[#B8962A] text-white; }
+
+.btn-black {
+  @apply bg-[#0A0A0A] text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors cursor-pointer border-0 text-center inline-block;
+}
+.btn-black:hover { @apply bg-[#333]; }
+
+.btn-danger {
+  @apply bg-red-600 text-white font-bold py-3 px-6 rounded-lg text-base transition-colors cursor-pointer border-0 text-center inline-block;
+}
+.btn-danger:hover { @apply bg-red-700; }
+
+.form-input {
+  @apply w-full py-4 px-4 border-2 border-gray-200 rounded-lg text-base bg-white transition-colors outline-none;
+}
+.form-input:focus { @apply border-[#B8962A]; }
+
+.form-label {
+  @apply block font-semibold mb-2 text-gray-900 text-sm;
+}
+
+.form-error {
+  @apply text-red-500 text-sm mt-1;
+}
+
+.card {
+  @apply bg-white rounded-2xl p-8 shadow-sm;
+}
+
+.admin-sidebar-link {
+  @apply flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 font-medium transition-all no-underline;
+}
+.admin-sidebar-link:hover { @apply bg-[#B8962A]/15 text-[#B8962A]; }
+.admin-sidebar-link.active { @apply bg-[#B8962A]/20 text-[#B8962A]; }

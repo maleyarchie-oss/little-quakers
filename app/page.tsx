@@ -1,65 +1,69 @@
-import Image from "next/image";
+import Link from 'next/link'
+import Header from '@/components/ui/Header'
+import Footer from '@/components/ui/Footer'
+import Logo from '@/components/ui/Logo'
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <div className="flex flex-col min-h-screen">
+      <Header />
+      <main className="flex-1">
+        {/* Hero */}
+        <section className="bg-[#0A0A0A] text-white py-20 px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="flex justify-center mb-8">
+              <Logo size="lg" />
+            </div>
+            <h1 className="text-5xl md:text-6xl font-black mb-4 leading-tight">
+              <span className="text-[#B8962A]">PHILADELPHIA</span><br />
+              LITTLE QUAKERS
+            </h1>
+            <p className="text-gray-400 text-xl mb-2">All-Star Football · Est. 1953</p>
+            <p className="text-gray-300 text-lg mb-10 max-w-2xl mx-auto">
+              One of Philadelphia's most storied youth football programs. Join us for tryouts and be part of the legacy.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/register" className="btn-primary text-xl px-12 py-5">
+                Register for Tryouts
+              </Link>
+              <Link href="/calendar" className="btn-secondary text-xl px-12 py-5">
+                View Calendar
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Info Cards */}
+        <section className="py-16 px-4">
+          <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-6">
+            <div className="card text-center">
+              <div className="text-4xl mb-4">🏈</div>
+              <h3 className="text-xl font-black mb-2">Tryouts</h3>
+              <p className="text-gray-600">150 players compete for 35–40 spots on the most elite youth football team in Philadelphia.</p>
+            </div>
+            <div className="card text-center">
+              <div className="text-4xl mb-4">⭐</div>
+              <h3 className="text-xl font-black mb-2">All-Stars Only</h3>
+              <p className="text-gray-600">We scout the best talent from across the region. Compete at the highest level and represent the city with pride.</p>
+            </div>
+            <div className="card text-center">
+              <div className="text-4xl mb-4">🏆</div>
+              <h3 className="text-xl font-black mb-2">A Winning Tradition</h3>
+              <p className="text-gray-600">Since 1953, the Little Quakers have developed young men into champions on and off the field.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="bg-[#B8962A] py-14 px-4 text-center">
+          <h2 className="text-3xl font-black text-white mb-4">Ready to Try Out?</h2>
+          <p className="text-white/80 text-lg mb-8 max-w-xl mx-auto">Registration takes about 10 minutes. All you need is some basic information and your documents.</p>
+          <Link href="/register" className="btn-black text-xl px-12 py-5">
+            Register Now
+          </Link>
+        </section>
       </main>
+      <Footer />
     </div>
-  );
+  )
 }

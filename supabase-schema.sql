@@ -1,0 +1,74 @@
+-- Philadelphia Little Quakers - Supabase Schema
+-- Run this entire file in the Supabase SQL Editor, then click Run.
+
+-- SETTINGS TABLE (one row only, id = 1)
+create table if not exists settings (
+  id integer primary key default 1,
+  registration_open boolean default false,
+  tryout_date text default '',
+  tryout_time text default '',
+  tryout_location text default '',
+  stripe_link text default '',
+  email_from text default 'info@littlequakers.com',
+  made_team_subject text default 'Congratulations - You Made the Little Quakers!',
+  made_team_body text default '',
+  not_made_team_subject text default 'Thank You for Trying Out - Little Quakers',
+  not_made_team_body text default '',
+  google_sheets_calendar_id text default ''
+);
+
+insert into settings (id) values (1) on conflict (id) do nothing;
+
+-- ADMIN USERS TABLE
+create table if not exists admin_users (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  username text not null unique,
+  email text not null,
+  password_hash text not null,
+  created_at timestamptz default now()
+);
+
+-- REGISTRANTS TABLE
+create table if not exists registrants (
+  id uuid primary key default gen_random_uuid(),
+  player_first_name text not null,
+  player_last_name text not null,
+  birth_date text not null,
+  height text not null,
+  weight text not null,
+  current_school text not null,
+  grade text not null,
+  current_coach_name text not null,
+  current_coach_email text not null,
+  position_desired text not null,
+  caregiver_first_name text not null,
+  caregiver_last_name text not null,
+  email text not null,
+  phone text not null,
+  home_address text not null,
+  birth_certificate_url text,
+  report_card_url text,
+  agreed_code_of_conduct boolean default false,
+  agreed_medical_release boolean default false,
+  agreed_photo_release boolean default false,
+  status text default 'registered',
+  jersey_number integer,
+  donated boolean default false,
+  created_at timestamptz default now(),
+  constraint registrants_status_check check (status in ('registered', 'made_team', 'not_made_team'))
+);
+
+-- Indexes for faster lookups
+create index if not exists idx_registrants_status on registrants(status);
+create index if not exists idx_registrants_email on registrants(email);
+create index if not exists idx_registrants_created on registrants(created_at desc);
+
+-- ROW LEVEL SECURITY
+alter table settings enable row level security;
+alter table admin_users enable row level security;
+alter table registrants enable row level security;
+
+-- Allow public to read settings (needed to check if registration is open)
+create policy "Public can read settings" on settings
+  for select using (true);
