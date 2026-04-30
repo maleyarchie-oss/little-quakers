@@ -39,12 +39,18 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const aptRaw = (get('apt_unit') || '').trim()
+
     const { error } = await supabaseAdmin.from('registrants').insert({
       player_first_name: get('player_first_name'),
       player_last_name: get('player_last_name'),
       birth_date: get('birth_date'),
       email: get('email'),
-      home_address: get('home_address'),
+      street_address: get('street_address'),
+      apt_unit: aptRaw === '' ? null : aptRaw,
+      city: get('city'),
+      state: get('state'),
+      zip_code: get('zip_code'),
       phone: get('phone'),
       height: get('height'),
       weight: get('weight'),

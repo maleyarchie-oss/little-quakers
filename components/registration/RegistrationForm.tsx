@@ -26,7 +26,11 @@ export interface FormData {
   caregiver_last_name: string
   email: string
   phone: string
-  home_address: string
+  street_address: string
+  apt_unit: string
+  city: string
+  state: string
+  zip_code: string
   // Documents
   birth_certificate: File | null
   report_card: File | null
@@ -40,7 +44,8 @@ const INITIAL: FormData = {
   player_first_name: '', player_last_name: '', birth_date: '', height: '', weight: '',
   current_school: '', grade: '', current_coach_name: '', current_coach_email: '',
   position_desired: '', caregiver_first_name: '', caregiver_last_name: '',
-  email: '', phone: '', home_address: '',
+  email: '', phone: '',
+  street_address: '', apt_unit: '', city: '', state: 'PA', zip_code: '',
   birth_certificate: null, report_card: null,
   agreed_code_of_conduct: false, agreed_medical_release: false, agreed_photo_release: false,
 }

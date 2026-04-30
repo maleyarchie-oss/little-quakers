@@ -40,11 +40,13 @@ export default function RegistrantsTable({ registrants }: { registrants: Registr
   })
 
   const exportCSV = () => {
-    const headers = ['First Name', 'Last Name', 'Position', 'Height', 'Weight', 'School', 'Grade', 'Caregiver', 'Email', 'Phone', 'Address', 'Coach', 'Coach Email', 'Status', 'Registered']
+    const headers = ['First Name', 'Last Name', 'Position', 'Height', 'Weight', 'School', 'Grade', 'Caregiver', 'Email', 'Phone', 'Street', 'Apt/Unit', 'City', 'State', 'ZIP', 'Coach', 'Coach Email', 'Status', 'Registered']
     const csvRows = filtered.map(r => [
       r.player_first_name, r.player_last_name, r.position_desired, r.height, r.weight,
       r.current_school, r.grade, `${r.caregiver_first_name} ${r.caregiver_last_name}`,
-      r.email, r.phone, r.home_address, r.current_coach_name, r.current_coach_email,
+      r.email, r.phone,
+      r.street_address, r.apt_unit || '', r.city, r.state, r.zip_code,
+      r.current_coach_name, r.current_coach_email,
       r.status, new Date(r.created_at).toLocaleDateString(),
     ])
     const csv = [headers, ...csvRows].map(r => r.map(v => `"${String(v || '').replace(/"/g, '""')}"`).join(',')).join('\n')

@@ -20,7 +20,11 @@ export interface Registrant {
   player_last_name: string
   birth_date: string
   email: string
-  home_address: string
+  street_address: string
+  apt_unit: string | null
+  city: string
+  state: string
+  zip_code: string
   phone: string
   height: string
   weight: string
