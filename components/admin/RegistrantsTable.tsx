@@ -1,13 +1,38 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Registrant } from '@/types'
 
 export default function RegistrantsTable({ registrants }: { registrants: Registrant[] }) {
+  const router = useRouter()
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('all')
+  const [rows, setRows] = useState<Registrant[]>(registrants)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [confirmId, setConfirmId] = useState<string | null>(null)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-  const filtered = registrants.filter(r => {
+  async function deleteRegistrant(id: string) {
+    setErrorMsg(null)
+    setDeletingId(id)
+    try {
+      const res = await fetch(`/api/admin/registrants/${id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body?.error || 'Delete failed')
+      }
+      setRows(prev => prev.filter(r => r.id !== id))
+      setConfirmId(null)
+      router.refresh()
+    } catch (e) {
+      setErrorMsg(e instanceof Error ? e.message : 'Delete failed')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  const filtered = rows.filter(r => {
     const name = `${r.player_first_name} ${r.player_last_name}`.toLowerCase()
     const matchesSearch = name.includes(search.toLowerCase()) || r.position_desired.toLowerCase().includes(search.toLowerCase())
     const matchesFilter = filter === 'all' || r.status === filter
@@ -16,13 +41,13 @@ export default function RegistrantsTable({ registrants }: { registrants: Registr
 
   const exportCSV = () => {
     const headers = ['First Name', 'Last Name', 'Position', 'Height', 'Weight', 'School', 'Grade', 'Caregiver', 'Email', 'Phone', 'Address', 'Coach', 'Coach Email', 'Status', 'Registered']
-    const rows = filtered.map(r => [
+    const csvRows = filtered.map(r => [
       r.player_first_name, r.player_last_name, r.position_desired, r.height, r.weight,
       r.current_school, r.grade, `${r.caregiver_first_name} ${r.caregiver_last_name}`,
       r.email, r.phone, r.home_address, r.current_coach_name, r.current_coach_email,
       r.status, new Date(r.created_at).toLocaleDateString(),
     ])
-    const csv = [headers, ...rows].map(r => r.map(v => `"${String(v || '').replace(/"/g, '""')}"`).join(',')).join('\n')
+    const csv = [headers, ...csvRows].map(r => r.map(v => `"${String(v || '').replace(/"/g, '""')}"`).join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -51,12 +76,18 @@ export default function RegistrantsTable({ registrants }: { registrants: Registr
         </button>
       </div>
 
+      {errorMsg && (
+        <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {errorMsg}
+        </div>
+      )}
+
       {/* Table */}
       <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
-              {['Player', 'Position', 'Height/Weight', 'School', 'Caregiver', 'Email', 'Docs', 'Status'].map(h => (
+              {['Player', 'Position', 'Height/Weight', 'School', 'Caregiver', 'Email', 'Docs', 'Status', ''].map(h => (
                 <th key={h} className="text-left px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">{h}</th>
               ))}
             </tr>
@@ -97,6 +128,16 @@ export default function RegistrantsTable({ registrants }: { registrants: Registr
                     {r.status === 'made_team' ? '✓ Team' : r.status === 'not_made_team' ? '✗ No' : 'Pending'}
                   </span>
                 </td>
+                <td className="px-4 py-3 text-right">
+                  <button
+                    onClick={() => setConfirmId(r.id)}
+                    disabled={deletingId === r.id}
+                    className="text-xs font-semibold text-red-600 hover:text-red-800 hover:underline disabled:opacity-40"
+                    aria-label={`Delete ${r.player_first_name} ${r.player_last_name}`}
+                  >
+                    {deletingId === r.id ? 'Deleting…' : 'Delete'}
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -105,6 +146,39 @@ export default function RegistrantsTable({ registrants }: { registrants: Registr
           <div className="py-16 text-center text-gray-400">No registrants found.</div>
         )}
       </div>
+
+      {/* Confirm modal */}
+      {confirmId && (() => {
+        const target = rows.find(r => r.id === confirmId)
+        if (!target) return null
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+              <h2 className="text-xl font-black mb-2">Delete registration?</h2>
+              <p className="text-gray-600 mb-6">
+                Delete <strong>{target.player_first_name} {target.player_last_name}</strong>'s registration?
+                This cannot be undone.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setConfirmId(null)}
+                  disabled={deletingId === confirmId}
+                  className="px-4 py-2 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => deleteRegistrant(confirmId)}
+                  disabled={deletingId === confirmId}
+                  className="px-4 py-2 rounded-lg text-sm font-semibold bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+                >
+                  {deletingId === confirmId ? 'Deleting…' : 'Delete'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }
