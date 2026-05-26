@@ -76,3 +76,10 @@ alter table registrants enable row level security;
 -- Allow public to read settings (needed to check if registration is open)
 create policy "Public can read settings" on settings
   for select using (true);
+
+-- Allow public to insert registrants (registration form)
+create policy "Public can insert registrants" on registrants
+  for insert with check (true);
+
+-- Service role handles all admin operations via bypass RLS
+-- These policies allow the anon/public role where needed
