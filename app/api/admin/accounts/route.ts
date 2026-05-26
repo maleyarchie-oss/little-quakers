@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (error) {
+    console.error('[admin/accounts] insert error:', error)
     if (error.code === '23505') return NextResponse.json({ error: 'Username already exists.' }, { status: 409 })
     return NextResponse.json({ error: `Database error: ${error.message} (code: ${error.code})` }, { status: 500 })
   }
