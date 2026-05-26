@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
 
   if (error) {
     if (error.code === '23505') return NextResponse.json({ error: 'Username already exists.' }, { status: 409 })
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: `Database error: ${error.message} (code: ${error.code})` }, { status: 500 })
   }
 
   return NextResponse.json({ success: true, account: data })
