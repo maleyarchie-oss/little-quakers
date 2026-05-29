@@ -33,7 +33,6 @@ export default async function Home() {
               fill
               className="object-cover opacity-30"
               priority
-              onError={() => {}}
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-[#0A0A0A]" />
           </div>
@@ -121,7 +120,6 @@ export default async function Home() {
                   alt="Little Quakers team"
                   fill
                   className="object-cover opacity-80"
-                  onError={() => {}}
                 />
                 <div className="absolute inset-0 flex items-end p-6">
                   <div className="bg-[#B8962A] text-white px-4 py-2 rounded-lg">
