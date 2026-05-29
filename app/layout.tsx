@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Philadelphia Little Quakers',
-  description: 'Official platform for the Philadelphia Little Quakers All-Star Football Team – Est. 1953',
+  title: 'Philadelphia Little Quakers | All-Star Youth Football',
+  description: 'Philadelphia\'s premier all-star youth football program. Est. 1953. Register for tryouts, view the roster, schedule, and more at littlequakers.us.',
   icons: { icon: '/favicon.ico' },
 }
 

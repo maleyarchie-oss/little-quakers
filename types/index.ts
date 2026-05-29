@@ -80,3 +80,26 @@ export interface AdminUser {
   email: string
   created_at: string
 }
+
+export interface BlogPost {
+  id: string
+  title: string
+  slug: string
+  excerpt: string
+  content: string
+  cover_image_url: string | null
+  author_id: string | null
+  author_name: string
+  published: boolean
+  published_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface BlogAuthor {
+  id: string
+  name: string
+  email: string
+  username: string
+  created_at: string
+}

@@ -81,5 +81,37 @@ create policy "Public can read settings" on settings
 create policy "Public can insert registrants" on registrants
   for insert with check (true);
 
--- Service role handles all admin operations via bypass RLS
--- These policies allow the anon/public role where needed
+-- BLOG AUTHORS TABLE
+create table if not exists blog_authors (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  email text not null,
+  username text not null unique,
+  password_hash text not null,
+  created_at timestamptz default now()
+);
+
+-- BLOG POSTS TABLE
+create table if not exists blog_posts (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  slug text not null unique,
+  excerpt text not null,
+  content text not null,
+  cover_image_url text,
+  author_id uuid references blog_authors(id) on delete set null,
+  author_name text not null,
+  published boolean default false,
+  published_at timestamptz,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create index if not exists idx_blog_posts_slug on blog_posts(slug);
+create index if not exists idx_blog_posts_published on blog_posts(published, published_at desc);
+
+alter table blog_authors enable row level security;
+alter table blog_posts enable row level security;
+
+create policy "Public can read published posts" on blog_posts
+  for select using (published = true);

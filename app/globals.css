@@ -55,3 +55,14 @@ body {
 }
 .admin-sidebar-link:hover { @apply bg-[#B8962A]/15 text-[#B8962A]; }
 .admin-sidebar-link.active { @apply bg-[#B8962A]/20 text-[#B8962A]; }
+
+/* Blog post content rendering */
+.prose-lq h1 { @apply text-3xl font-black mb-4 mt-8 text-[#0A0A0A]; }
+.prose-lq h2 { @apply text-2xl font-black mb-3 mt-8 text-[#0A0A0A]; }
+.prose-lq h3 { @apply text-xl font-bold mb-2 mt-6 text-[#0A0A0A]; }
+.prose-lq p { @apply mb-4 leading-relaxed text-gray-700; }
+.prose-lq ul { @apply mb-4 pl-6 space-y-1; }
+.prose-lq li { @apply list-disc text-gray-700; }
+.prose-lq strong { @apply font-bold text-[#0A0A0A]; }
+.prose-lq em { @apply italic; }
+.prose-lq a { @apply text-[#B8962A] hover:underline; }

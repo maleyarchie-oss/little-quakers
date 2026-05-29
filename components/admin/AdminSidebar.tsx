@@ -10,6 +10,8 @@ const NAV = [
   { href: '/admin/team-selection', icon: '🏈', label: 'Team Selection' },
   { href: '/admin/roster', icon: '📃', label: 'Final Roster' },
   { href: '/admin/broadcast', icon: '📢', label: 'Broadcast Email' },
+  { href: '/admin/blog', icon: '✍️', label: 'Blog Posts' },
+  { href: '/admin/blog-authors', icon: '🖊️', label: 'Blog Authors' },
   { href: '/admin/settings', icon: '⚙️', label: 'Settings' },
   { href: '/admin/accounts', icon: '👤', label: 'Admin Accounts' },
 ]
