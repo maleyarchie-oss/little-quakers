@@ -98,6 +98,7 @@ export const coachingStaff: StaffMember[] = [
     name: 'John Estok',
     title: 'Strength Coach & Defensive Line',
     initials: 'JE',
+    photo: '/coachestok.jpg',
     bio: 'John is an award-winning strength coach who brings certified, professional-level strength-and-conditioning expertise to the Little Quakers. Almost no youth football program at any price point has a dedicated credentialed strength coach. Our players train like high school and college athletes.',
   },
   {

@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import Header from '@/components/ui/Header'
 import Footer from '@/components/ui/Footer'
 import { supabaseAdmin } from '@/lib/supabase'
@@ -24,9 +25,16 @@ export default async function Home() {
 
         {/* ── HERO ── */}
         <section className="relative bg-[#0A0A0A] text-white overflow-hidden min-h-[90vh] flex items-center">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#0A0A0A] via-[#111] to-[#0A0A0A]" />
-          <div className="absolute inset-0 opacity-10"
-            style={{ backgroundImage: 'radial-gradient(circle at 30% 50%, #B8962A 0%, transparent 60%)' }} />
+          <div className="absolute inset-0">
+            <Image
+              src="/hero.jpg"
+              alt="Philadelphia Little Quakers"
+              fill
+              className="object-cover object-center opacity-40"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-[#0A0A0A]" />
+          </div>
 
           <div className="relative max-w-6xl mx-auto px-4 py-24 text-center w-full">
             <div className="inline-block border border-[#B8962A]/40 text-[#B8962A] text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full mb-8">
@@ -104,14 +112,36 @@ export default async function Home() {
                 Meet Our Staff
               </Link>
             </div>
-            <div className="relative">
-              <div className="bg-[#0A0A0A] rounded-2xl overflow-hidden aspect-[4/3] flex items-center justify-center">
-                <div className="text-center px-8">
-                  <p className="text-[#B8962A] font-black text-6xl mb-2">LQ</p>
-                  <p className="text-gray-600 text-sm">Philadelphia Little Quakers</p>
-                  <p className="text-gray-700 text-xs mt-1">All-Star Football · Est. 1953</p>
+            <div className="relative rounded-2xl overflow-hidden aspect-[4/3]">
+              <Image
+                src="/natanthem.jpg"
+                alt="Little Quakers players at the national anthem"
+                fill
+                className="object-cover object-top"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-5">
+                <div className="bg-[#B8962A] text-white px-4 py-2 rounded-lg inline-block">
+                  <p className="font-black text-sm">Philadelphia Little Quakers</p>
+                  <p className="text-white/80 text-xs">All-Star Football · Est. 1953</p>
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── TEAM PHOTO STRIP ── */}
+        <section className="relative h-64 md:h-80 overflow-hidden">
+          <Image
+            src="/2026teamphoto.jpg"
+            alt="2026 Little Quakers team"
+            fill
+            className="object-cover object-top"
+          />
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+            <div className="text-center text-white">
+              <p className="text-[#B8962A] font-bold uppercase tracking-widest text-sm mb-2">Philadelphia Little Quakers</p>
+              <p className="text-3xl md:text-4xl font-black">2026 Season</p>
             </div>
           </div>
         </section>
@@ -149,11 +179,6 @@ export default async function Home() {
                     </div>
                   </Link>
                 ))}
-              </div>
-              <div className="text-center mt-8 sm:hidden">
-                <Link href="/blog" className="btn-secondary text-base px-8 py-3">
-                  View All Posts
-                </Link>
               </div>
             </div>
           </section>

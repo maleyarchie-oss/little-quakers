@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Header from '@/components/ui/Header'
 import Footer from '@/components/ui/Footer'
 import { leadership, coachingStaff, StaffMember } from '@/data/staff'
@@ -51,8 +52,18 @@ export default function AboutPage() {
       <main className="flex-1">
 
         {/* Hero */}
-        <section className="bg-[#0A0A0A] text-white py-20 px-4">
-          <div className="max-w-6xl mx-auto">
+        <section className="relative bg-[#0A0A0A] text-white py-24 px-4 overflow-hidden">
+          <div className="absolute inset-0">
+            <Image
+              src="/lockedarmsLQ.jpg"
+              alt="Little Quakers players"
+              fill
+              className="object-cover object-center opacity-30"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
+          </div>
+          <div className="relative max-w-6xl mx-auto">
             <p className="text-[#B8962A] font-bold uppercase tracking-widest text-sm mb-3">The Program</p>
             <h1 className="text-5xl md:text-6xl font-black mb-6 leading-tight">
               Built by People<br />Who Lived It
@@ -106,6 +117,19 @@ export default function AboutPage() {
                 <StaffCard key={member.name} member={member} />
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* Team photo strip */}
+        <section className="relative h-72 overflow-hidden">
+          <Image
+            src="/2026teamphoto.jpg"
+            alt="Little Quakers team photo"
+            fill
+            className="object-cover object-top"
+          />
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+            <p className="text-white text-3xl font-black tracking-wide">ONE TEAM. ONE CITY.</p>
           </div>
         </section>
 

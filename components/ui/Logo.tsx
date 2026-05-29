@@ -11,7 +11,7 @@ export default function Logo({ size = 'md', className = '' }: LogoProps) {
   const px = sizes[size]
   return (
     <Image
-      src="/logo.png"
+      src="/LQ Logo Transparent.png"
       alt="Philadelphia Little Quakers"
       width={px}
       height={px}
