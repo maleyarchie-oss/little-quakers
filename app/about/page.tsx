@@ -78,7 +78,7 @@ export default function AboutPage() {
         <section className="bg-[#B8962A] py-10 px-4">
           <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-8 text-white text-center">
             {[
-              { stat: '70+', label: 'Years of Football', sub: 'Est. 1953' },
+              { stat: '73+', label: 'Years of Football', sub: 'Est. 1953' },
               { stat: '200+', label: 'Combined Years', sub: 'Coaching experience on staff' },
               { stat: '100%', label: 'Alumni-Driven', sub: 'Coaches who played in this program' },
             ].map(({ stat, label, sub }) => (
