@@ -102,7 +102,7 @@ export default async function Home() {
           <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
             <div>
               <p className="text-[#B8962A] font-bold uppercase tracking-widest text-sm mb-3">Who We Are</p>
-              <h2 className="text-4xl font-black mb-6 leading-tight">More Than<br />Just Football</h2>
+              <h2 className="text-4xl font-black mb-6 leading-tight">It's More Than<br />Just Football</h2>
               <p className="text-gray-600 text-lg mb-6 leading-relaxed">
                 The Philadelphia Little Quakers are the city's premier all-star youth football program. Each year, 150 players compete for 35–40 spots on a team that represents Philadelphia at the highest level of youth competition.
               </p>
