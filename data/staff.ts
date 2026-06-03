@@ -71,7 +71,7 @@ export const coachingStaff: StaffMember[] = [
     subtitle: 'All-American, Muhlenberg College',
     initials: 'MH',
     alumni: 'LQ Class of 2013',
-    bio: 'Neeko played for the Little Quakers in 2013 and went on to earn All-American honors at Muhlenberg College. He brings recent elite playing experience to the QB room — and the kids love him for it. The distance between him and the players he coaches is small; he was that kid not long ago.',
+    bio: "Neeko played for the Little Quakers in 2013 and went on to earn All-American honors at Muhlenberg College. He brings recent elite playing experience to the QB room, and the kids love him for it. The distance between him and the players he coaches is small. He was their age not long ago.",
   },
   {
     name: 'Casey Jones',
