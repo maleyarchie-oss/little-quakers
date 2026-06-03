@@ -44,10 +44,10 @@ export const coachingStaff: StaffMember[] = [
   {
     name: 'Joe Spera',
     title: 'Defensive Coordinator',
-    subtitle: 'Athletic Director, Council Rock North H.S.',
+    subtitle: 'Decades of high school coaching experience',
     initials: 'JS',
     tenure: '20 years',
-    bio: 'Joe brings 20 years of Little Quakers experience to the defensive side of the ball. By day he serves as Athletic Director at Council Rock North High School — a credential that signals the seriousness he brings to our sideline. Players and parents alike consistently name him a favorite.',
+    bio: "Joe brings 20 years of Little Quakers experience to the defensive side of the ball. Joe has been coaching at the high school level for decades, a credential that signals the seriousness he brings to our sideline. Players and parents alike consistently name him a favorite.",
   },
   {
     name: 'Rick "Hollywood" Mellor',
