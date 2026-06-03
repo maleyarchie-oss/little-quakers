@@ -1,4 +1,4 @@
-import Header from '@/components/ui/Header'
+import HeaderServer from '@/components/ui/HeaderServer'
 import Footer from '@/components/ui/Footer'
 import CalendarView from '@/components/CalendarView'
 import { supabaseAdmin } from '@/lib/supabase'
@@ -22,7 +22,7 @@ export default async function CalendarPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
+      <HeaderServer />
       <main className="flex-1 py-10 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

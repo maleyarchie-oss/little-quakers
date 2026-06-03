@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { supabaseAdmin } from '@/lib/supabase'
 import RegistrationForm from '@/components/registration/RegistrationForm'
-import Header from '@/components/ui/Header'
+import HeaderServer from '@/components/ui/HeaderServer'
 import Footer from '@/components/ui/Footer'
 import Link from 'next/link'
 
@@ -20,7 +20,7 @@ export default async function RegisterPage() {
   if (!settings?.registration_open) {
     return (
       <div className="flex flex-col min-h-screen">
-        <Header />
+        <HeaderServer />
         <main className="flex-1 flex items-center justify-center px-4 py-20">
           <div className="card max-w-md w-full text-center">
             <div className="text-5xl mb-4">🔒</div>

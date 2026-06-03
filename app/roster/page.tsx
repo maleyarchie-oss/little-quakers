@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 
-import Header from '@/components/ui/Header'
+import HeaderServer from '@/components/ui/HeaderServer'
 import Footer from '@/components/ui/Footer'
 import { supabaseAdmin } from '@/lib/supabase'
 import { Registrant } from '@/types'
@@ -35,7 +35,7 @@ export default async function RosterPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
+      <HeaderServer />
       <main className="flex-1">
 
         {/* Hero */}

@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
 import Image from 'next/image'
-import Header from '@/components/ui/Header'
+import HeaderServer from '@/components/ui/HeaderServer'
 import Footer from '@/components/ui/Footer'
 import { supabaseAdmin } from '@/lib/supabase'
 import { BlogPost } from '@/types'
@@ -17,10 +17,11 @@ export default async function Home() {
 
   const { data: settings } = await supabaseAdmin.from('settings').select('*').single()
   const registrationOpen = settings?.registration_open
+  const donateUrl = settings?.stripe_link?.trim() || ''
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
+      <HeaderServer />
       <main className="flex-1">
 
         {/* ── HERO ── */}
@@ -63,6 +64,16 @@ export default async function Home() {
               <Link href="/about" className="btn-secondary text-lg px-10 py-4">
                 Meet the Staff
               </Link>
+              {donateUrl && (
+                <a
+                  href={donateUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-lg px-10 py-4 rounded-lg border-2 border-[#B8962A] text-[#B8962A] hover:bg-[#B8962A] hover:text-white font-bold transition-colors no-underline inline-block text-center"
+                >
+                  Donate
+                </a>
+              )}
             </div>
           </div>
         </section>

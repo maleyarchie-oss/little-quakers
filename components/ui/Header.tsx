@@ -13,7 +13,7 @@ const NAV_LINKS = [
   { href: '/contact', label: 'Contact' },
 ]
 
-export default function Header() {
+export default function Header({ donateUrl }: { donateUrl?: string }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
 
@@ -43,9 +43,19 @@ export default function Header() {
               {label}
             </Link>
           ))}
+          {donateUrl && (
+            <a
+              href={donateUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-2 border border-[#B8962A] text-[#B8962A] hover:bg-[#B8962A] hover:text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors no-underline"
+            >
+              Donate
+            </a>
+          )}
           <Link
             href="/register"
-            className="ml-3 bg-[#B8962A] hover:bg-[#8B7020] text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors no-underline"
+            className="ml-2 bg-[#B8962A] hover:bg-[#8B7020] text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors no-underline"
           >
             Register
           </Link>
@@ -91,6 +101,17 @@ export default function Header() {
           >
             Register for Tryouts
           </Link>
+          {donateUrl && (
+            <a
+              href={donateUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setOpen(false)}
+              className="mt-3 block text-center border border-[#B8962A] text-[#B8962A] font-bold py-3 px-6 rounded-lg no-underline"
+            >
+              Donate
+            </a>
+          )}
         </div>
       )}
     </header>

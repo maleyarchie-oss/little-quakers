@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import Header from '@/components/ui/Header'
+import HeaderServer from '@/components/ui/HeaderServer'
 import Footer from '@/components/ui/Footer'
 import { leadership, coachingStaff, StaffMember } from '@/data/staff'
 
@@ -48,7 +48,7 @@ function StaffCard({ member }: { member: StaffMember }) {
 export default function AboutPage() {
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
+      <HeaderServer />
       <main className="flex-1">
 
         {/* Hero */}

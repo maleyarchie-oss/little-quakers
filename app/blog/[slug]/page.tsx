@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
-import Header from '@/components/ui/Header'
+import HeaderServer from '@/components/ui/HeaderServer'
 import Footer from '@/components/ui/Footer'
 import { supabaseAdmin } from '@/lib/supabase'
 import { renderMarkdown } from '@/lib/markdown'
@@ -28,7 +28,7 @@ export default async function BlogPostPage({
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
+      <HeaderServer />
       <main className="flex-1">
 
         {/* Header */}
