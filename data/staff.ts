@@ -108,4 +108,13 @@ export const coachingStaff: StaffMember[] = [
     tenure: '15 years',
     bio: 'Bart has coached the linebackers for 15 years — a sustained volunteer commitment that reflects the culture of the Little Quakers staff. Not a hired gun, but a lifelong contributor to the program.',
   },
+  {
+    name: 'Kenny Devenney',
+    title: 'Coach',
+    subtitle: 'Head Baseball Coach, Central High School',
+    initials: 'KD',
+    alumni: 'LQ Class of 1996',
+    tenure: '15+ years',
+    bio: "Kenny played for the Little Quakers in 1996 and has coached with the program for 15+ years. By day he serves as Head Baseball Coach at Philadelphia's Central High School, where he's also a teacher. Another return alum carrying forward what was given to him.",
+  },
 ]
