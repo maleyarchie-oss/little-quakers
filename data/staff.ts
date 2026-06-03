@@ -21,6 +21,7 @@ export const leadership: StaffMember[] = [
     title: 'VP, Team Operations',
     subtitle: '"Mama Bouie"',
     initials: 'KB',
+    photo: '/coachkeshina.jpg',
     tenure: '4 years',
     bio: 'Known affectionately as "Mama Bouie," Keshina owns communications, guest speakers, event planning, and the annual away trip. Her fingerprints are on every part of the season — she\'s the engine that makes it all run.',
   },
