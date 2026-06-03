@@ -136,16 +136,18 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Team photo strip */}
-        <section className="relative h-72 overflow-hidden">
-          <Image
-            src="/2026teamphoto.jpg"
-            alt="Little Quakers team photo"
-            fill
-            className="object-cover object-top"
-          />
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-            <p className="text-white text-3xl font-black tracking-wide">ONE TEAM. ONE CITY.</p>
+        {/* Team photo strip — Option A: show entire photo, no cropping */}
+        <section className="bg-[#0A0A0A]">
+          <div className="relative w-full aspect-[3/2] md:aspect-[16/9] max-h-[80vh] bg-[#0A0A0A]">
+            <Image
+              src="/2026teamphoto.jpg"
+              alt="Little Quakers team photo"
+              fill
+              className="object-contain"
+            />
+          </div>
+          <div className="bg-[#B8962A] py-5 text-center">
+            <p className="text-white text-2xl md:text-3xl font-black tracking-wide">ONE TEAM. ONE CITY.</p>
           </div>
         </section>
 

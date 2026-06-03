@@ -129,19 +129,19 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* ── TEAM PHOTO STRIP ── */}
-        <section className="relative h-64 md:h-80 overflow-hidden">
-          <Image
-            src="/2026teamphoto.jpg"
-            alt="2026 Little Quakers team"
-            fill
-            className="object-cover object-top"
-          />
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <div className="text-center text-white">
-              <p className="text-[#B8962A] font-bold uppercase tracking-widest text-sm mb-2">Philadelphia Little Quakers</p>
-              <p className="text-3xl md:text-4xl font-black">2026 Season</p>
-            </div>
+        {/* ── TEAM PHOTO STRIP — Option A: show entire photo, no cropping ── */}
+        <section className="bg-[#0A0A0A]">
+          <div className="relative w-full aspect-[3/2] md:aspect-[16/9] max-h-[80vh] bg-[#0A0A0A]">
+            <Image
+              src="/2026teamphoto.jpg"
+              alt="2026 Little Quakers team"
+              fill
+              className="object-contain"
+            />
+          </div>
+          <div className="bg-[#0A0A0A] py-6 text-center">
+            <p className="text-[#B8962A] font-bold uppercase tracking-widest text-sm mb-1">Philadelphia Little Quakers</p>
+            <p className="text-white text-3xl md:text-4xl font-black">2026 Season</p>
           </div>
         </section>
 
