@@ -29,7 +29,7 @@ export default async function BlogPage() {
           <div className="max-w-6xl mx-auto">
             <p className="text-[#B8962A] font-bold uppercase tracking-widest text-sm mb-3">Little Quakers</p>
             <h1 className="text-5xl font-black mb-4">News &amp; Updates</h1>
-            <p className="text-gray-400 text-lg">The latest from the program — tryout updates, season recaps, and more.</p>
+            <p className="text-gray-400 text-lg">The latest from the program: tryout updates, season recaps, and more.</p>
           </div>
         </section>
 

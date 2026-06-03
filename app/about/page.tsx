@@ -69,7 +69,7 @@ export default function AboutPage() {
               Built by People<br />Who Lived It
             </h1>
             <p className="text-gray-400 text-xl max-w-2xl leading-relaxed">
-              Our coaches aren't hired guns. They're alumni, fathers, and lifelong volunteers — people who played for this program, built careers around football, and came back to give the next generation what they were given.
+              Our coaches aren't hired guns. They're alumni, fathers, and lifelong volunteers. People who played for this program, built careers around football, and came back to give the next generation what they were given.
             </p>
           </div>
         </section>
@@ -110,7 +110,7 @@ export default function AboutPage() {
             <p className="text-[#B8962A] font-bold uppercase tracking-widest text-sm mb-3">On the Field</p>
             <h2 className="text-4xl font-black mb-4">Coaching Staff</h2>
             <p className="text-gray-500 text-lg mb-10 max-w-2xl">
-              A staff built on tenure, credentials, and the kind of commitment you can't hire — because it comes from having played in this program yourself.
+              A staff built on tenure, credentials, and the kind of commitment you can't hire. It comes from having played in this program yourself.
             </p>
             <div className="grid md:grid-cols-2 gap-6">
               {coachingStaff.map(member => (

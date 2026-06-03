@@ -139,7 +139,7 @@ export default function SettingsForm({ settings }: { settings: Settings | null }
             </div>
             <div>
               <label className="form-label">Body</label>
-              <p className="text-gray-400 text-xs mb-1">Use [Player Name] as a placeholder — it will be replaced automatically.</p>
+              <p className="text-gray-400 text-xs mb-1">Use [Player Name] as a placeholder. It will be replaced automatically.</p>
               <textarea className="form-input" rows={6} value={form.made_team_body}
                 onChange={e => set('made_team_body', e.target.value)} />
             </div>

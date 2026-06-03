@@ -56,7 +56,7 @@ export default async function DashboardPage() {
             </span>
           </p>
           {settings?.tryout_date && (
-            <p className="text-gray-500 text-sm mt-0.5">Tryout: {settings.tryout_date} at {settings.tryout_time} — {settings.tryout_location}</p>
+            <p className="text-gray-500 text-sm mt-0.5">Tryout: {settings.tryout_date} at {settings.tryout_time} · {settings.tryout_location}</p>
           )}
         </div>
         <Link href="/admin/settings" className="text-sm font-semibold text-[#B8962A] hover:underline">

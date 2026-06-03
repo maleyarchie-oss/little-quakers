@@ -15,7 +15,7 @@ export default async function AdminBlogAuthorsPage() {
         <h1 className="text-3xl font-black">Blog Authors</h1>
         <p className="text-gray-500 mt-1">
           Create accounts for staff members who need to write blog posts.
-          Authors only have access to the blog — not registrants or admin tools.
+          Authors only have access to the blog. They can't see registrants or admin tools.
         </p>
       </div>
       <BlogAuthorsManager initialAuthors={authors || []} />
