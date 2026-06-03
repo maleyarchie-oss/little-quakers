@@ -14,7 +14,7 @@ export const leadership: StaffMember[] = [
     name: 'PJ Maley',
     title: 'President',
     initials: 'PJ',
-    bio: 'PJ leads the Philadelphia Little Quakers as President, overseeing all program operations, sponsorships, and community relationships. Everything flows through him — and the program reflects his standard.',
+    bio: "PJ was a 1982 Little Quaker and took the reins 5 years ago. He oversees all program operations, sponsorships, finance, and community relationships. For him, it's an honor to carry on the Little Quaker tradition.",
   },
   {
     name: 'Keshina Bouie',
