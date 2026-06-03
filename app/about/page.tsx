@@ -91,6 +91,22 @@ export default function AboutPage() {
           </div>
         </section>
 
+        {/* Who We Are */}
+        <section className="py-20 px-4 bg-white">
+          <div className="max-w-3xl mx-auto">
+            <p className="text-[#B8962A] font-bold uppercase tracking-widest text-sm mb-3">Who We Are</p>
+            <h2 className="text-4xl font-black mb-6 leading-tight">A Philadelphia tradition, free to every family.</h2>
+            <div className="space-y-5 text-gray-700 text-lg leading-relaxed">
+              <p>
+                Started in 1953, the Little Quakers is a Philadelphia-based youth football organization with a single mission: opportunity. In a world where elite youth football costs families thousands of dollars a year, the Little Quakers remain an outlier, delivering a world-class experience at $0 cost.
+              </p>
+              <p>
+                The program endures because of two groups of people: the former Little Quakers who never forgot, and the major corporate partners who choose to invest in a Philadelphia tradition.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* Leadership */}
         <section className="py-20 px-4 bg-[#F5F4F0]">
           <div className="max-w-6xl mx-auto">
