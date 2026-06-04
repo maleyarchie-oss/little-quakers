@@ -112,14 +112,17 @@ export default function EventsPage() {
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <span className="inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-500 font-bold px-6 py-3 rounded-lg text-sm cursor-not-allowed">
-                    Registration opening soon
-                  </span>
                   <Link
-                    href="/contact"
+                    href="/events/golf-outing"
+                    className="inline-flex items-center justify-center gap-2 bg-[#B8962A] hover:bg-[#8B7020] text-white font-bold px-6 py-3 rounded-lg text-sm transition-colors"
+                  >
+                    Register &amp; Sponsorships
+                  </Link>
+                  <Link
+                    href="/events/golf-outing#sponsorships"
                     className="inline-flex items-center justify-center text-[#B8962A] hover:text-[#8B7020] font-bold text-sm px-6 py-3 rounded-lg border-2 border-[#B8962A] hover:border-[#8B7020] transition-colors"
                   >
-                    Sponsor Inquiry
+                    Sponsorship Levels
                   </Link>
                 </div>
               </div>

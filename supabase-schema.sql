@@ -14,7 +14,13 @@ create table if not exists settings (
   made_team_body text default '',
   not_made_team_subject text default 'Thank You for Trying Out - Little Quakers',
   not_made_team_body text default '',
-  google_sheets_calendar_id text default ''
+  google_sheets_calendar_id text default '',
+  -- Golf Outing Stripe Payment Links (one per tier)
+  golf_stripe_individual text default '',
+  golf_stripe_foursome text default '',
+  golf_stripe_hole text default '',
+  golf_stripe_legends text default '',
+  golf_stripe_platinum text default ''
 );
 
 insert into settings (id) values (1) on conflict (id) do nothing;

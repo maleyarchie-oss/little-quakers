@@ -14,6 +14,12 @@ interface Settings {
   not_made_team_subject: string
   not_made_team_body: string
   google_sheets_calendar_id: string
+  // Golf Outing Stripe Payment Links
+  golf_stripe_individual: string
+  golf_stripe_foursome: string
+  golf_stripe_hole: string
+  golf_stripe_legends: string
+  golf_stripe_platinum: string
 }
 
 export default function SettingsForm({ settings }: { settings: Settings | null }) {
@@ -29,6 +35,11 @@ export default function SettingsForm({ settings }: { settings: Settings | null }
     not_made_team_subject: settings?.not_made_team_subject ?? 'Thank You for Trying Out – Little Quakers',
     not_made_team_body: settings?.not_made_team_body ?? `Dear [Player Name],\n\nThank you for trying out for the Philadelphia Little Quakers. We were impressed by the effort and heart you showed at tryouts.\n\nWhile we were not able to offer you a spot on this year's roster, we encourage you to keep working hard and try again next year.\n\nGo Little Quakers!\n\n— The Coaching Staff`,
     google_sheets_calendar_id: settings?.google_sheets_calendar_id ?? '',
+    golf_stripe_individual: settings?.golf_stripe_individual ?? '',
+    golf_stripe_foursome: settings?.golf_stripe_foursome ?? '',
+    golf_stripe_hole: settings?.golf_stripe_hole ?? '',
+    golf_stripe_legends: settings?.golf_stripe_legends ?? '',
+    golf_stripe_platinum: settings?.golf_stripe_platinum ?? '',
   })
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
@@ -117,7 +128,45 @@ export default function SettingsForm({ settings }: { settings: Settings | null }
           <input className="form-input" value={form.stripe_link}
             onChange={e => set('stripe_link', e.target.value)}
             placeholder="https://buy.stripe.com/…" />
-          <p className="text-gray-400 text-xs mt-1">Paste your Stripe payment link. This button appears on the last step of registration.</p>
+          <p className="text-gray-400 text-xs mt-1">Paste your Stripe payment link. This button appears on the last step of registration and powers the Donate buttons site-wide.</p>
+        </div>
+      </div>
+
+      {/* Golf Outing Stripe links */}
+      <div className="card">
+        <h2 className="font-black text-xl mb-1">Golf Outing (Stripe)</h2>
+        <p className="text-gray-500 text-sm mb-5">One Stripe Payment Link per tier. Leave a field blank and that tier's registration will be saved without redirect to Stripe (we'll follow up manually).</p>
+        <div className="space-y-4">
+          <div>
+            <label className="form-label">Individual Golfer ($250)</label>
+            <input className="form-input" value={form.golf_stripe_individual}
+              onChange={e => set('golf_stripe_individual', e.target.value)}
+              placeholder="https://buy.stripe.com/…" />
+          </div>
+          <div>
+            <label className="form-label">Foursome ($1,000)</label>
+            <input className="form-input" value={form.golf_stripe_foursome}
+              onChange={e => set('golf_stripe_foursome', e.target.value)}
+              placeholder="https://buy.stripe.com/…" />
+          </div>
+          <div>
+            <label className="form-label">Hole Sponsor ($500)</label>
+            <input className="form-input" value={form.golf_stripe_hole}
+              onChange={e => set('golf_stripe_hole', e.target.value)}
+              placeholder="https://buy.stripe.com/…" />
+          </div>
+          <div>
+            <label className="form-label">LQ Legends ($2,500)</label>
+            <input className="form-input" value={form.golf_stripe_legends}
+              onChange={e => set('golf_stripe_legends', e.target.value)}
+              placeholder="https://buy.stripe.com/…" />
+          </div>
+          <div>
+            <label className="form-label">Levy Platinum ($5,000)</label>
+            <input className="form-input" value={form.golf_stripe_platinum}
+              onChange={e => set('golf_stripe_platinum', e.target.value)}
+              placeholder="https://buy.stripe.com/…" />
+          </div>
         </div>
       </div>
 
