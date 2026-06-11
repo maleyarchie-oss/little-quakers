@@ -37,6 +37,7 @@ export const coachingStaff: StaffMember[] = [
   {
     name: 'Chris Rahill',
     title: 'Head Coach',
+    photo: '/coachrahill.jpg',
     initials: 'CR',
     alumni: 'LQ Class of 1996',
     tenure: '11 years',
