@@ -9,6 +9,7 @@ const NAV = [
   { href: '/admin/registrants', icon: '📋', label: 'Registrants' },
   { href: '/admin/team-selection', icon: '🏈', label: 'Team Selection' },
   { href: '/admin/roster', icon: '📃', label: 'Final Roster' },
+  { href: '/admin/golf-registrations', icon: '⛳', label: 'Golf Outing' },
   { href: '/admin/broadcast', icon: '📢', label: 'Broadcast Email' },
   { href: '/admin/blog', icon: '✍️', label: 'Blog Posts' },
   { href: '/admin/blog-authors', icon: '🖊️', label: 'Blog Authors' },

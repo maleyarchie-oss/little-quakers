@@ -103,3 +103,31 @@ export interface BlogAuthor {
   username: string
   created_at: string
 }
+
+export type GolfTier =
+  | 'individual'
+  | 'foursome'
+  | 'hole_sponsor'
+  | 'lq_legends'
+  | 'levy_platinum'
+
+export type GolfStatus = 'pending' | 'paid' | 'cancelled' | 'refunded'
+
+export interface GolfRegistration {
+  id: string
+  tier: GolfTier
+  amount: number
+  first_name: string
+  last_name: string
+  email: string
+  phone: string
+  partner1_name: string | null
+  partner2_name: string | null
+  partner3_name: string | null
+  sponsor_display_name: string | null
+  status: GolfStatus
+  stripe_session_id: string | null
+  stripe_paid_at: string | null
+  notes: string | null
+  created_at: string
+}
