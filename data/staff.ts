@@ -78,6 +78,7 @@ export const coachingStaff: StaffMember[] = [
   {
     name: 'Casey Jones',
     title: 'Offensive Line Coach',
+    photo: '/coachjones.jpg',
     subtitle: 'Temple University Football',
     initials: 'CJ',
     bio: 'Casey played college football at Temple University and brings genuine collegiate offensive line technique to our trenches. Consistently named one of the best instructors on staff by families, his impact shows up fast — players and parents cite him after as few as four games.',
