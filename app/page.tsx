@@ -104,7 +104,7 @@ export default async function Home() {
               <p className="text-[#B8962A] font-bold uppercase tracking-widest text-sm mb-3">Who We Are</p>
               <h2 className="text-4xl font-black mb-6 leading-tight">It's More Than<br />Just Football</h2>
               <p className="text-gray-600 text-lg mb-6 leading-relaxed">
-                The Philadelphia Little Quakers are the city's premier all-star youth football program. Each year, 150 players compete for 35–40 spots on a team that represents Philadelphia at the highest level of youth competition.
+                The Philadelphia Little Quakers are the city's premier all-star youth football program. Each year, our team represents Philadelphia at the highest level of youth competition.
               </p>
               <ul className="space-y-3 mb-8">
                 {[
@@ -203,7 +203,7 @@ export default async function Home() {
               Think You Have What<br />It Takes?
             </h2>
             <p className="text-gray-400 text-lg mb-10 leading-relaxed">
-              150 players compete for 35–40 spots. Register for tryouts and earn your place on Philadelphia's finest youth football team.
+              Register for tryouts and earn your place on Philadelphia's finest youth football team.
             </p>
             {registrationOpen ? (
               <Link href="/register" className="btn-primary text-xl px-14 py-5">
