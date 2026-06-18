@@ -8,7 +8,7 @@ const POSITIONS = [
   'Cornerback', 'Safety', 'Kicker', 'Punter', 'Long Snapper',
 ]
 
-const GRADES = ['5th', '6th', '7th', '8th']
+const GRADES = ['5th', '6th', '7th', '8th', '9th']
 
 interface Props {
   data: FormData
