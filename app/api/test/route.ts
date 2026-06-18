@@ -32,15 +32,16 @@ export async function GET() {
     const { count: totalCount } = await supabaseAdmin
       .from('registrants')
       .select('*', { count: 'exact', head: true })
-    const { data: nullRows, error: nullErr } = await supabaseAdmin
+    // The column may or may not exist depending on partial migration state.
+    // Just dump the two existing rows in full so PJ can decide.
+    const { data: allRows, error: allErr } = await supabaseAdmin
       .from('registrants')
-      .select('id, player_first_name, player_last_name, email, status, created_at, street_address')
-      .is('street_address', null)
+      .select('*')
+      .order('created_at', { ascending: true })
     cleanup = {
       total_rows: totalCount,
-      rows_with_null_street_address: nullRows?.length || 0,
-      null_row_samples: nullRows?.slice(0, 10) || [],
-      null_query_error: nullErr?.message || null,
+      all_rows: allRows || [],
+      query_error: allErr?.message || null,
     }
   } catch (e) {
     cleanup = { cleanup_threw: e instanceof Error ? e.message : String(e) }
