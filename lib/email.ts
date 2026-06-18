@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import { TRYOUT_SESSIONS, TRYOUT_TIME, TRYOUT_LOCATION } from '@/lib/tryout-info'
 
 let _resend: Resend | null = null
 function getResend() {
@@ -8,29 +9,21 @@ function getResend() {
 
 const FROM = () => process.env.EMAIL_FROM || 'info@littlequakers.com'
 
-interface TryoutInfo {
-  date: string
-  time: string
-  location: string
-}
-
 export async function sendConfirmationEmail(
   to: string,
   playerName: string,
-  tryout: TryoutInfo
 ) {
   await getResend().emails.send({
     from: FROM(),
     to,
     subject: 'Philadelphia Little Quakers – Tryout Confirmation',
-    html: buildConfirmationHtml(playerName, tryout),
+    html: buildConfirmationHtml(playerName),
   })
 }
 
 export async function sendReminderEmail(
   to: string,
   playerName: string,
-  tryout: TryoutInfo,
   daysOut: number
 ) {
   const label = daysOut === 1 ? 'Tomorrow' : `${daysOut} Days Away`
@@ -38,7 +31,7 @@ export async function sendReminderEmail(
     from: FROM(),
     to,
     subject: `Little Quakers Tryout – ${label}!`,
-    html: buildReminderHtml(playerName, tryout, daysOut),
+    html: buildReminderHtml(playerName, daysOut),
   })
 }
 
@@ -118,17 +111,31 @@ function wrapInTemplate(name: string, body: string) {
 </html>`
 }
 
-function buildConfirmationHtml(playerName: string, tryout: TryoutInfo) {
-  return wrapInTemplate(
-    playerName,
-    `Dear ${playerName} and Family,\n\nThank you for registering for the Philadelphia Little Quakers tryout! We are excited to see you on the field.\n\n<strong>Tryout Details:</strong>\n📅 Date: ${tryout.date}\n🕐 Time: ${tryout.time}\n📍 Location: ${tryout.location}\n\nPlease arrive 15 minutes early, dressed and ready to play. Bring proper football gear if you have it.\n\nWe look forward to seeing you there!\n\nGo Little Quakers!\n\n— The Little Quakers Coaching Staff`
+// Canonical tryout details from lib/tryout-info.ts, formatted for email bodies.
+function tryoutDetailsHtml() {
+  const datesLines = TRYOUT_SESSIONS.map(
+    s => `   • ${s.label}: ${s.full}`
+  ).join('\n')
+  return (
+    `<strong>Tryout Details:</strong>\n` +
+    `📅 Dates:\n${datesLines}\n` +
+    `🕐 Time: ${TRYOUT_TIME} (all three nights)\n` +
+    `📍 Location: ${TRYOUT_LOCATION.name}\n` +
+    `   ${TRYOUT_LOCATION.fullAddress}`
   )
 }
 
-function buildReminderHtml(playerName: string, tryout: TryoutInfo, daysOut: number) {
+function buildConfirmationHtml(playerName: string) {
+  return wrapInTemplate(
+    playerName,
+    `Dear ${playerName} and Family,\n\nThank you for registering for the Philadelphia Little Quakers tryout! We are excited to see you on the field.\n\n${tryoutDetailsHtml()}\n\nPlease arrive 15 minutes early, dressed and ready to play. Bring proper football gear if you have it.\n\nWe look forward to seeing you there!\n\nGo Little Quakers!\n\n— The Little Quakers Coaching Staff`
+  )
+}
+
+function buildReminderHtml(playerName: string, daysOut: number) {
   const when = daysOut === 1 ? 'TOMORROW' : `in ${daysOut} days`
   return wrapInTemplate(
     playerName,
-    `Dear ${playerName} and Family,\n\nJust a reminder that your Little Quakers tryout is <strong>${when}!</strong>\n\n<strong>Tryout Details:</strong>\n📅 Date: ${tryout.date}\n🕐 Time: ${tryout.time}\n📍 Location: ${tryout.location}\n\nPlease arrive 15 minutes early. We look forward to seeing you!\n\nGo Little Quakers!\n\n— The Little Quakers Coaching Staff`
+    `Dear ${playerName} and Family,\n\nJust a reminder that your Little Quakers tryout is <strong>${when}!</strong>\n\n${tryoutDetailsHtml()}\n\nPlease arrive 15 minutes early. We look forward to seeing you!\n\nGo Little Quakers!\n\n— The Little Quakers Coaching Staff`
   )
 }

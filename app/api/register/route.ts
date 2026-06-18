@@ -77,11 +77,7 @@ export async function POST(req: NextRequest) {
 
     const email = get('email')
     if (email) {
-      await sendConfirmationEmail(email, playerName, {
-        date: settings.tryout_date || 'TBD',
-        time: settings.tryout_time || 'TBD',
-        location: settings.tryout_location || 'TBD',
-      }).catch(console.error)
+      await sendConfirmationEmail(email, playerName).catch(console.error)
     }
 
     return NextResponse.json({ success: true })

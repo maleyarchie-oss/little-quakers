@@ -3,6 +3,18 @@ import { NextRequest, NextResponse } from 'next/server'
 export const dynamic = 'force-dynamic'
 import { supabaseAdmin } from '@/lib/supabase'
 import { sendReminderEmail } from '@/lib/email'
+import { TRYOUT_SESSIONS } from '@/lib/tryout-info'
+
+// Parse each session's full date string ("Wednesday, September 23, 2026") into
+// a JS Date at start-of-day. Centralized so the cron + any future use shares
+// one source of truth.
+function getTryoutDates(): Date[] {
+  return TRYOUT_SESSIONS.map(s => {
+    const d = new Date(s.full)
+    d.setHours(0, 0, 0, 0)
+    return d
+  })
+}
 
 export async function GET(req: NextRequest) {
   // Verify cron secret to prevent unauthorized triggering
@@ -13,21 +25,33 @@ export async function GET(req: NextRequest) {
 
   const { data: settings } = await supabaseAdmin
     .from('settings')
-    .select('tryout_date, tryout_time, tryout_location, registration_open')
+    .select('registration_open')
     .single()
 
-  if (!settings?.tryout_date || !settings.registration_open) {
-    return NextResponse.json({ skipped: true, reason: 'No tryout date set or registration closed' })
+  if (!settings?.registration_open) {
+    return NextResponse.json({ skipped: true, reason: 'Registration closed' })
   }
 
-  const tryoutDate = new Date(settings.tryout_date)
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  const diffDays = Math.round((tryoutDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+  // Find the next upcoming tryout date that's exactly 14, 7, or 1 day(s) away.
+  const dates = getTryoutDates()
+  const REMINDER_OFFSETS = [14, 7, 1]
+  let triggerDays: number | null = null
+  for (const d of dates) {
+    const diff = Math.round((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+    if (REMINDER_OFFSETS.includes(diff)) {
+      triggerDays = diff
+      break
+    }
+  }
 
-  if (![14, 7, 1].includes(diffDays)) {
-    return NextResponse.json({ skipped: true, reason: `${diffDays} days out — no reminder needed` })
+  if (triggerDays === null) {
+    return NextResponse.json({
+      skipped: true,
+      reason: 'No tryout dates are 14, 7, or 1 day(s) away',
+    })
   }
 
   const { data: registrants } = await supabaseAdmin
@@ -39,18 +63,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ skipped: true, reason: 'No pending registrants' })
   }
 
-  const tryout = {
-    date: settings.tryout_date,
-    time: settings.tryout_time || 'TBD',
-    location: settings.tryout_location || 'TBD',
-  }
-
   const sends = registrants.map(r =>
     sendReminderEmail(
       r.email,
       `${r.player_first_name} ${r.player_last_name}`,
-      tryout,
-      diffDays
+      triggerDays as number
     ).catch(console.error)
   )
 
@@ -58,7 +75,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     success: true,
-    daysOut: diffDays,
+    daysOut: triggerDays,
     sent: registrants.length,
   })
 }
