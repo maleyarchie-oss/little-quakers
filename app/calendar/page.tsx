@@ -1,6 +1,7 @@
 import HeaderServer from '@/components/ui/HeaderServer'
 import Footer from '@/components/ui/Footer'
 import CalendarView from '@/components/CalendarView'
+import TryoutScheduleBlock from '@/components/TryoutScheduleBlock'
 import { supabaseAdmin } from '@/lib/supabase'
 import { getCalendarEvents } from '@/lib/google'
 
@@ -38,6 +39,16 @@ export default async function CalendarPage() {
               📅 Subscribe to Calendar
             </a>
           </div>
+
+          {/* 2026 Tryouts — surfaced at the top, ahead of the broader calendar */}
+          <section className="mb-10 bg-[#0A0A0A] rounded-2xl p-6 md:p-8 text-white">
+            <p className="text-[#B8962A] font-bold uppercase tracking-widest text-sm mb-2">
+              First Up
+            </p>
+            <h2 className="text-2xl md:text-3xl font-black mb-5">2026 Tryouts</h2>
+            <TryoutScheduleBlock variant="dark" />
+          </section>
+
           <CalendarView events={events} />
         </div>
       </main>

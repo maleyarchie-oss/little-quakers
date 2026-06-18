@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import HeaderServer from '@/components/ui/HeaderServer'
 import Footer from '@/components/ui/Footer'
+import TryoutScheduleBlock from '@/components/TryoutScheduleBlock'
 
 export const metadata = {
   title: 'Events | Philadelphia Little Quakers',
@@ -41,7 +42,67 @@ export default function EventsPage() {
           </div>
         </section>
 
-        {/* Headline event: Golf Outing */}
+        {/* Event 01: 2026 Tryouts */}
+        <section className="py-20 px-4 bg-white">
+          <div className="max-w-6xl mx-auto">
+            <div className="bg-[#0A0A0A] rounded-2xl shadow-sm overflow-hidden grid md:grid-cols-2">
+              {/* Visual side */}
+              <div className="relative bg-[#0A0A0A] min-h-[280px] md:min-h-[420px]">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#1f3a5f] via-[#11233f] to-[#0A0A0A]" />
+                <div className="relative h-full flex flex-col justify-between p-8 md:p-10 text-white">
+                  <p className="text-[#B8962A] font-bold uppercase tracking-widest text-xs mb-3">
+                    Annual Tradition
+                  </p>
+                  <div>
+                    <p className="text-white/70 text-sm font-semibold uppercase tracking-wide">
+                      September – October
+                    </p>
+                    <p className="text-5xl md:text-6xl font-black leading-none mb-2">
+                      Tryouts
+                    </p>
+                    <p className="text-white/70">Three sessions</p>
+                  </div>
+                  <p className="text-white font-semibold text-lg mt-6">
+                    William Penn Charter School
+                  </p>
+                  <p className="text-white/70 text-sm">Philadelphia, PA</p>
+                </div>
+              </div>
+
+              {/* Content side */}
+              <div className="p-8 md:p-10 flex flex-col justify-center">
+                <p className="text-[#B8962A] font-bold uppercase tracking-widest text-sm mb-2">
+                  Event 01
+                </p>
+                <h2 className="text-3xl md:text-4xl font-black mb-4 leading-tight">
+                  2026 Tryouts
+                </h2>
+                <p className="text-gray-700 leading-relaxed mb-6">
+                  Tryouts are how every Little Quakers roster gets built. Three sessions
+                  at William Penn Charter School. All three are open to every player who
+                  wants a spot.
+                </p>
+                <TryoutScheduleBlock variant="light" className="mb-6" />
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Link
+                    href="/register"
+                    className="inline-flex items-center justify-center gap-2 bg-[#B8962A] hover:bg-[#8B7020] text-white font-bold px-6 py-3 rounded-lg text-sm transition-colors"
+                  >
+                    Register for Tryouts
+                  </Link>
+                  <Link
+                    href="/calendar"
+                    className="inline-flex items-center justify-center text-[#B8962A] hover:text-[#8B7020] font-bold text-sm px-6 py-3 rounded-lg border-2 border-[#B8962A] hover:border-[#8B7020] transition-colors"
+                  >
+                    Full Schedule
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Event 02: Golf Outing */}
         <section className="py-20 px-4 bg-[#F5F4F0]">
           <div className="max-w-6xl mx-auto">
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden grid md:grid-cols-2">
@@ -71,7 +132,7 @@ export default function EventsPage() {
               {/* Content side */}
               <div className="p-8 md:p-10 flex flex-col justify-center">
                 <p className="text-[#B8962A] font-bold uppercase tracking-widest text-sm mb-2">
-                  Event 01
+                  Event 02
                 </p>
                 <h2 className="text-3xl md:text-4xl font-black mb-4 leading-tight">
                   The Little Quakers<br />Golf Outing
@@ -139,7 +200,7 @@ export default function EventsPage() {
             <div className="bg-[#0A0A0A] rounded-2xl p-8 md:p-12 text-white grid md:grid-cols-3 gap-8 items-center">
               <div className="md:col-span-2">
                 <p className="text-[#B8962A] font-bold uppercase tracking-widest text-xs mb-2">
-                  Event 02
+                  Event 03
                 </p>
                 <h2 className="text-3xl md:text-4xl font-black mb-3 leading-tight">
                   The Season Banquet
