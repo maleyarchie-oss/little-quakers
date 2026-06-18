@@ -39,9 +39,9 @@ export const coachingStaff: StaffMember[] = [
     title: 'Head Coach',
     photo: '/coachrahill.jpg',
     initials: 'CR',
-    alumni: 'LQ Class of 1996',
-    tenure: '11 years',
-    bio: 'Chris came up through the Little Quakers as a player — Class of 1996 — and has led the program as Head Coach for 11 years. An offensive-minded tactician with deep football IQ, he is the living definition of "Once a Little Quaker, always a Little Quaker."',
+    alumni: 'LQ Class of 1995',
+    tenure: '10 years',
+    bio: "Chris came up through the Little Quakers as a player (Class of 1995) and has led the program as Head Coach for 10 years. Following his playing career at Ursinus College, Chris has 23 years of high-school and college coaching experience. An offensive-minded tactician with a deep football IQ, he is the living definition of 'Once a Little Quaker, always a Little Quaker.'",
   },
   {
     name: 'Joe Spera',
@@ -88,14 +88,14 @@ export const coachingStaff: StaffMember[] = [
     title: 'Assistant Offensive Line Coach',
     initials: 'KJ',
     alumni: 'LQ Class of 2015',
-    bio: 'Kyle played for the Little Quakers in 2015 and now coaches the offensive line alongside his father Casey — a father-son duo teaching the same position group. It\'s the inheritance pattern made literal, and one of the best examples of how this program perpetuates itself.',
+    bio: "Kyle played for the Little Quakers in 2015. After a successful college career at Franklin and Marshall College and Widener University, Kyle joined the Penn Charter and Little Quakers coaching staffs as a defensive assistant. He's a great example of the long-term success of Little Quakers.",
   },
   {
     name: 'Pat McCain',
-    title: 'Wide Receivers & Special Teams',
+    title: 'Special Teams Coach',
     subtitle: 'Dickinson College Football',
     initials: 'PM',
-    bio: 'Pat played at Dickinson College and returned to the Little Quakers — alongside fellow alum Neeko Hnatkowski — to coach the next generation. He owns the wide receivers and handles special teams, a phase of the game that few youth programs dedicate real coaching attention to.',
+    bio: "Pat played at Dickinson College and returned to the Little Quakers, alongside fellow alum Neeko Hnatkowski, to coach the next generation. He owns special teams, a phase of the game that few youth programs dedicate real coaching attention to.",
   },
   {
     name: 'John Estok',
@@ -106,10 +106,10 @@ export const coachingStaff: StaffMember[] = [
   },
   {
     name: 'Bart Schindler',
-    title: 'Linebackers Coach',
+    title: 'Wide Receivers Coach',
     initials: 'BS',
     tenure: '15 years',
-    bio: 'Bart has coached the linebackers for 15 years — a sustained volunteer commitment that reflects the culture of the Little Quakers staff. Not a hired gun, but a lifelong contributor to the program.',
+    bio: 'Bart was a standout player in the state of Delaware and went on to great success at Widener University. A 15-year veteran of the Little Quakers coaching staff, Bart has helped guide multiple college and NFL players through the organization. A sustained volunteer commitment that reflects the culture of the Little Quakers staff. Not a hired gun, but a lifelong contributor to the program.',
   },
   {
     name: 'Kenny Devenney',
@@ -118,6 +118,6 @@ export const coachingStaff: StaffMember[] = [
     initials: 'KD',
     alumni: 'LQ Class of 1996',
     tenure: '15+ years',
-    bio: "Kenny played for the Little Quakers in 1996 and has coached with the program for 15+ years. By day he serves as Head Baseball Coach at Philadelphia's Central High School, where he's also a teacher. Another return alum carrying forward what was given to him.",
+    bio: "Kenny played for the Little Quakers in 1996 and has coached with the program for 15+ years. A graduate and baseball player at St. John's University, Kenny brings a wealth of knowledge to our players. By day he serves as Head Baseball Coach at Philadelphia's Central High School, where he's also a teacher. Another return alum carrying forward what was given to him.",
   },
 ]
