@@ -23,7 +23,7 @@ export default function ThankYouPage() {
             <div className="text-6xl mb-5">🏈</div>
             <h1 className="text-3xl font-black mb-3 text-[#0A0A0A]">Registration Complete!</h1>
             <p className="text-[#B8962A] font-bold text-lg mb-2">
-              Welcome to the Little Quakers family!
+              We look forward to meeting you!
             </p>
             <p className="text-gray-600 text-base leading-relaxed">
               Thank you for registering. A confirmation email is on its way to your inbox.
