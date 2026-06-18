@@ -26,6 +26,26 @@ export async function GET() {
     registrantsProbe = { probe_threw: e instanceof Error ? e.message : String(e) }
   }
 
+  // TEMP DIAGNOSTIC: count rows + show street_address null status for cleanup planning
+  let cleanup: Record<string, unknown> = {}
+  try {
+    const { count: totalCount } = await supabaseAdmin
+      .from('registrants')
+      .select('*', { count: 'exact', head: true })
+    const { data: nullRows, error: nullErr } = await supabaseAdmin
+      .from('registrants')
+      .select('id, player_first_name, player_last_name, email, status, created_at, street_address')
+      .is('street_address', null)
+    cleanup = {
+      total_rows: totalCount,
+      rows_with_null_street_address: nullRows?.length || 0,
+      null_row_samples: nullRows?.slice(0, 10) || [],
+      null_query_error: nullErr?.message || null,
+    }
+  } catch (e) {
+    cleanup = { cleanup_threw: e instanceof Error ? e.message : String(e) }
+  }
+
   // TEMP DIAGNOSTIC: attempt the exact insert the registration form does
   let insertProbe: Record<string, unknown> = {}
   try {
@@ -81,6 +101,6 @@ export async function GET() {
     users: data?.map(u => ({ id: u.id, name: u.name, username: u.username })) || [],
     url_set: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
     key_set: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-    diagnostics: { registrants: registrantsProbe, registrants_insert: insertProbe },
+    diagnostics: { registrants: registrantsProbe, registrants_insert: insertProbe, cleanup_state: cleanup },
   })
 }
