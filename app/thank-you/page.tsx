@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
 import Logo from '@/components/ui/Logo'
+
 import Footer from '@/components/ui/Footer'
 import TryoutScheduleBlock from '@/components/TryoutScheduleBlock'
 import TryoutLocationMap from '@/components/TryoutLocationMap'
@@ -11,7 +12,9 @@ export default function ThankYouPage() {
     <div className="flex flex-col min-h-screen">
       <div className="bg-[#0A0A0A] py-5 px-4">
         <div className="max-w-2xl mx-auto flex justify-center">
-          <Logo size="md" />
+          <Link href="/" aria-label="Little Quakers home">
+            <Logo size="md" />
+          </Link>
         </div>
       </div>
 

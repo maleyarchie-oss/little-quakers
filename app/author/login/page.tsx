@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import Logo from '@/components/ui/Logo'
 
 export default function AuthorLoginPage() {
@@ -32,13 +33,13 @@ export default function AuthorLoginPage() {
     <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="flex justify-center mb-8">
-          <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3 no-underline" aria-label="Little Quakers home">
             <Logo size="sm" />
             <div>
               <p className="text-[#B8962A] font-black text-sm tracking-widest uppercase">Little Quakers</p>
               <p className="text-gray-500 text-xs">Author Portal</p>
             </div>
-          </div>
+          </Link>
         </div>
         <form onSubmit={submit} className="bg-[#111] border border-gray-800 rounded-2xl p-8 space-y-5">
           <h1 className="text-white text-2xl font-black text-center mb-2">Sign In</h1>

@@ -30,13 +30,13 @@ export default function AdminSidebar({ adminName }: { adminName: string }) {
     <aside className="w-64 bg-[#0A0A0A] border-r border-gray-800 flex flex-col min-h-screen shrink-0">
       {/* Brand */}
       <div className="px-5 py-6 border-b border-gray-800">
-        <div className="flex items-center gap-3">
+        <Link href="/" className="flex items-center gap-3 no-underline" aria-label="Little Quakers home">
           <Logo size="sm" />
           <div>
             <p className="text-[#B8962A] font-black text-xs tracking-widest uppercase">Little Quakers</p>
             <p className="text-gray-500 text-xs">Admin Portal</p>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* Nav */}

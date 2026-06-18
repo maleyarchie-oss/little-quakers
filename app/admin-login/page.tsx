@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import Logo from '@/components/ui/Logo'
 
 export default function AdminLoginPage() {
@@ -34,7 +35,9 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <Logo size="md" />
+            <Link href="/" aria-label="Little Quakers home">
+              <Logo size="md" />
+            </Link>
           </div>
           <h1 className="text-white font-black text-2xl">Admin Portal</h1>
           <p className="text-gray-500 text-sm mt-1">Philadelphia Little Quakers</p>
