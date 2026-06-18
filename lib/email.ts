@@ -128,7 +128,7 @@ function tryoutDetailsHtml() {
 function buildConfirmationHtml(playerName: string) {
   return wrapInTemplate(
     playerName,
-    `Dear ${playerName} and Family,\n\nThank you for registering for the Philadelphia Little Quakers tryout! We are excited to see you on the field.\n\n${tryoutDetailsHtml()}\n\nPlease arrive 15 minutes early, dressed and ready to play. Bring proper football gear if you have it.\n\nWe look forward to seeing you there!\n\nGo Little Quakers!\n\n— The Little Quakers Coaching Staff`
+    `Dear ${playerName} and Family,\n\nThank you for registering for the Philadelphia Little Quakers tryout! We are excited to see you on the field.\n\n${tryoutDetailsHtml()}\n\nPlease arrive 15 minutes early in full pads, including helmet, shoulder pads, hip, knee, and thigh pads. Email us at info@littlequakers.us if you have any questions.\n\nWe look forward to seeing you there!\n\nGo Little Quakers!\n\n— The Little Quakers Coaching Staff`
   )
 }
 
