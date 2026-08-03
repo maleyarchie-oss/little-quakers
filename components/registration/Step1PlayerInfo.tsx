@@ -63,6 +63,7 @@ export default function Step1PlayerInfo({ data, update, onNext }: Props) {
           <label className="form-label">Weight (lbs)</label>
           <input type="number" className="form-input" value={data.weight}
             onChange={e => update({ weight: e.target.value })} placeholder="145" />
+          <p className="text-gray-400 text-xs mt-1">No weight restriction. Enter your current weight.</p>
         </div>
         <div>
           <label className="form-label">Current School</label>
