@@ -69,19 +69,85 @@ export default function RegistrationForm({ stripeLink }: { stripeLink: string })
     setError('')
     try {
       const form = new FormData()
-      Object.entries(data).forEach(([k, v]) => {
-        if (v instanceof File) form.append(k, v)
-        else if (v !== null && v !== undefined) form.append(k, String(v))
-      })
+
+      // Compress large image uploads before sending so we stay under
+      // Vercel's serverless payload cap and don't waste bandwidth.
+      for (const [k, v] of Object.entries(data)) {
+        if (v instanceof File) {
+          const compressed = await maybeCompressImage(v)
+          form.append(k, compressed)
+        } else if (v !== null && v !== undefined) {
+          form.append(k, String(v))
+        }
+      }
       form.append('donated', String(donated))
 
       const res = await fetch('/api/register', { method: 'POST', body: form })
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error || 'Registration failed')
+
+      // Response might be JSON (our API) or plain HTML/text (Vercel platform
+      // error before it reached us, e.g. "Request Entity Too Large"). Read as
+      // text first, try JSON, fall back to a friendly summary.
+      const raw = await res.text()
+      let apiError = ''
+      try {
+        const json = raw ? JSON.parse(raw) : {}
+        apiError = json.error || ''
+      } catch {
+        // Not JSON — likely a platform-level error.
+        if (res.status === 413) {
+          apiError = 'Your uploaded files are too large. Please retake the photos or use smaller files (under 4 MB each).'
+        } else if (res.status >= 500) {
+          apiError = 'The server had an error. Please try again in a moment.'
+        } else if (res.status === 403) {
+          apiError = 'Registration is not open at this time.'
+        } else {
+          apiError = 'We could not complete your registration. Please try again.'
+        }
+      }
+
+      if (!res.ok) throw new Error(apiError || 'Registration failed')
       router.push('/thank-you')
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Something went wrong. Please try again.')
+      const msg = e instanceof Error ? e.message : 'Something went wrong. Please try again.'
+      setError(msg)
       setSubmitting(false)
+    }
+  }
+
+  // Downscale + re-encode large images before upload. HEIC/other formats the
+  // browser can't decode pass through untouched.
+  async function maybeCompressImage(file: File): Promise<File> {
+    if (!file.type.startsWith('image/')) return file
+    if (file.size < 1_500_000) return file // already small; leave it alone
+
+    try {
+      const bitmap = await createImageBitmap(file)
+      const maxDim = 2000
+      let { width, height } = bitmap
+      const scale = Math.min(1, maxDim / Math.max(width, height))
+      width = Math.round(width * scale)
+      height = Math.round(height * scale)
+
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return file
+      ctx.drawImage(bitmap, 0, 0, width, height)
+
+      const blob: Blob | null = await new Promise(resolve =>
+        canvas.toBlob(resolve, 'image/jpeg', 0.85)
+      )
+      if (!blob) return file
+
+      // Only substitute if we actually made it smaller.
+      if (blob.size >= file.size) return file
+
+      const newName = file.name.replace(/\.[^.]+$/, '') + '.jpg'
+      return new File([blob], newName, { type: 'image/jpeg' })
+    } catch {
+      // HEIC, corrupt, or unsupported — send original and let server sort it out.
+      return file
     }
   }
 

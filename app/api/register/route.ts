@@ -3,6 +3,12 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { sendConfirmationEmail } from '@/lib/email'
 import { uploadDocument } from '@/lib/storage'
 
+// Registration includes two document uploads (birth cert + report card),
+// which can be phone photos in the 3-6 MB range each. Client-side compression
+// keeps this under control, but we also raise the server cap as a safety net.
+export const runtime = 'nodejs'
+export const maxDuration = 60
+
 export async function POST(req: NextRequest) {
   try {
     const form = await req.formData()
