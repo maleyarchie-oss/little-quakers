@@ -50,7 +50,7 @@ export default async function Home() {
               All-Star Youth Football
             </p>
             <p className="text-gray-400 text-base md:text-lg mb-12 max-w-2xl mx-auto leading-relaxed">
-              One of Philadelphia's most storied youth football programs. 73+ years of developing champions on and off the field.
+              One of Philadelphia's most storied youth football programs. 74+ years of developing champions on and off the field.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {registrationOpen ? (
@@ -85,7 +85,7 @@ export default async function Home() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               {[
                 { value: '1953', label: 'Established' },
-                { value: '73+', label: 'Years of Football' },
+                { value: '74+', label: 'Years of Football' },
                 { value: '10+', label: 'Coaches on Staff' },
                 { value: '35–40', label: 'Spots Per Season' },
               ].map(({ value, label }) => (
@@ -110,7 +110,7 @@ export default async function Home() {
               <ul className="space-y-3 mb-8">
                 {[
                   'Scholarships available to some of the best prep schools in Philadelphia',
-                  '73+ years of alumni who went on to play at every level',
+                  '74+ years of alumni who went on to play at every level',
                   'Once a Little Quaker, always a Little Quaker',
                 ].map(item => (
                   <li key={item} className="flex items-start gap-3">
