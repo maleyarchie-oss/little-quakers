@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { getSession } from '@/lib/auth'
+import { sendGolfPaymentConfirmedEmail } from '@/lib/email'
+import type { GolfTier } from '@/lib/golf-outing-info'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const VALID_STATUSES = ['pending', 'paid', 'cancelled', 'refunded'] as const
@@ -42,6 +44,14 @@ export async function PATCH(
     update.stripe_paid_at = new Date().toISOString()
   }
 
+  // Pull the existing row so we know (a) whether this is a fresh paid transition
+  // and (b) have the registrant details for the confirmation email.
+  const { data: existing } = await supabaseAdmin
+    .from('golf_registrations')
+    .select('*')
+    .eq('id', id)
+    .single()
+
   const { error } = await supabaseAdmin
     .from('golf_registrations')
     .update(update)
@@ -50,6 +60,24 @@ export async function PATCH(
   if (error) {
     console.error('[admin/golf-registrations/patch] failed:', error)
     return NextResponse.json({ error: 'Failed to update registration' }, { status: 500 })
+  }
+
+  // Fire Email #2 (payment confirmed) if this transition is pending -> paid.
+  // Non-blocking so a mail failure doesn't roll back the status change.
+  if (status === 'paid' && existing && existing.status !== 'paid' && existing.email) {
+    sendGolfPaymentConfirmedEmail({
+      firstName: existing.first_name,
+      lastName: existing.last_name,
+      email: existing.email,
+      tier: existing.tier as GolfTier,
+      amount: existing.amount,
+      partner1_name: existing.partner1_name,
+      partner2_name: existing.partner2_name,
+      partner3_name: existing.partner3_name,
+      sponsor_display_name: existing.sponsor_display_name,
+    }).catch(err => {
+      console.error('[admin/golf-registrations/patch] payment email failed:', err)
+    })
   }
 
   return NextResponse.json({ success: true })

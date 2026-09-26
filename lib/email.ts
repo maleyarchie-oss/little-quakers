@@ -1,5 +1,6 @@
 import { Resend } from 'resend'
 import { TRYOUT_SESSIONS, TRYOUT_TIME, TRYOUT_LOCATION } from '@/lib/tryout-info'
+import { GOLF_OUTING, TIER_LABEL, type GolfTier } from '@/lib/golf-outing-info'
 
 let _resend: Resend | null = null
 function getResend() {
@@ -138,4 +139,106 @@ function buildReminderHtml(playerName: string, daysOut: number) {
     playerName,
     `Dear ${playerName} and Family,\n\nJust a reminder that your Little Quakers tryout is <strong>${when}!</strong>\n\n${tryoutDetailsHtml()}\n\nPlease arrive 15 minutes early. We look forward to seeing you!\n\nGo Little Quakers!\n\n— The Little Quakers Coaching Staff`
   )
+}
+
+// -----------------------------------------------------------------------
+// GOLF OUTING
+// Email #1: fires immediately when someone submits the registration form.
+//   Payment may or may not have completed yet.
+// Email #2: fires when their payment is confirmed (via 'Mark Paid' in admin
+//   for now; webhook later).
+// -----------------------------------------------------------------------
+
+interface GolfRegistrantSummary {
+  firstName: string
+  lastName: string
+  email: string
+  tier: GolfTier
+  amount: number
+  partner1_name?: string | null
+  partner2_name?: string | null
+  partner3_name?: string | null
+  sponsor_display_name?: string | null
+}
+
+function golfDetailsHtml() {
+  const scheduleLines = GOLF_OUTING.schedule
+    .map(s => `   • ${s.time} — ${s.label}`)
+    .join('\n')
+  const includedInline = GOLF_OUTING.included.join(', ')
+  return (
+    `<strong>Event Details:</strong>\n` +
+    `📅 Date: ${GOLF_OUTING.date}\n` +
+    `📍 Venue: ${GOLF_OUTING.venue.name}, ${GOLF_OUTING.venue.city}, ${GOLF_OUTING.venue.state}\n\n` +
+    `<strong>Schedule:</strong>\n${scheduleLines}\n\n` +
+    `<strong>Included for every golfer:</strong>\n   ${includedInline}`
+  )
+}
+
+function hasFoursome(tier: GolfTier) {
+  return tier === 'foursome' || tier === 'lq_legends' || tier === 'levy_platinum'
+}
+
+function missingPartners(r: GolfRegistrantSummary): number {
+  if (!hasFoursome(r.tier)) return 0
+  let n = 0
+  if (!r.partner1_name) n++
+  if (!r.partner2_name) n++
+  if (!r.partner3_name) n++
+  return n
+}
+
+export async function sendGolfRegistrationReceivedEmail(r: GolfRegistrantSummary) {
+  const displayName = r.firstName || 'Golfer'
+  const amountLine = `$${r.amount.toLocaleString()} — ${TIER_LABEL[r.tier]}`
+  const paymentBlurb = `You should have been redirected to Stripe to complete your payment. If you did not finish, you can return to ${GOLF_OUTING.registrationUrl} to complete it. We will send a separate confirmation once your payment is received.`
+
+  await getResend().emails.send({
+    from: FROM(),
+    to: r.email,
+    subject: 'Little Quakers Golf Outing — Registration Received',
+    html: wrapInTemplate(
+      displayName,
+      `Hi ${displayName},\n\n` +
+        `We've received your registration for the Little Quakers Golf Outing.\n\n` +
+        `<strong>Your Tier:</strong> ${amountLine}\n\n` +
+        `${golfDetailsHtml()}\n\n` +
+        `<strong>Payment:</strong>\n${paymentBlurb}\n\n` +
+        `Questions? Email us at ${GOLF_OUTING.contactEmail}.\n\n` +
+        `Thanks for supporting the Little Quakers.\n\n— Philadelphia Little Quakers`
+    ),
+  })
+}
+
+export async function sendGolfPaymentConfirmedEmail(r: GolfRegistrantSummary) {
+  const displayName = r.firstName || 'Golfer'
+  const amountLine = `$${r.amount.toLocaleString()} — ${TIER_LABEL[r.tier]}`
+
+  const partnerLines = hasFoursome(r.tier)
+    ? (() => {
+        const missing = missingPartners(r)
+        if (missing === 0) {
+          const names = [r.partner1_name, r.partner2_name, r.partner3_name]
+            .filter(Boolean)
+            .join(', ')
+          return `\n\n<strong>Your foursome:</strong> ${displayName}, ${names}.`
+        }
+        return `\n\n<strong>Foursome reminder:</strong> we still need ${missing} partner name${missing === 1 ? '' : 's'} for your foursome. Please email ${GOLF_OUTING.contactEmail} with the names as soon as you have them.`
+      })()
+    : ''
+
+  await getResend().emails.send({
+    from: FROM(),
+    to: r.email,
+    subject: 'Little Quakers Golf Outing — Payment Confirmed',
+    html: wrapInTemplate(
+      displayName,
+      `Hi ${displayName},\n\n` +
+        `Your payment has been received. You're officially in for October 19.\n\n` +
+        `<strong>Paid:</strong> ${amountLine}\n\n` +
+        `${golfDetailsHtml()}${partnerLines}\n\n` +
+        `We will email you closer to the date with any last details. Questions in the meantime? ${GOLF_OUTING.contactEmail}.\n\n` +
+        `See you at Bluestone.\n\n— Philadelphia Little Quakers`
+    ),
+  })
 }

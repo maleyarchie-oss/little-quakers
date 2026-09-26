@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { sendGolfRegistrationReceivedEmail } from '@/lib/email'
 
 type Tier = 'individual' | 'foursome' | 'hole_sponsor' | 'lq_legends' | 'levy_platinum'
 
@@ -92,6 +93,22 @@ export async function POST(req: NextRequest) {
     console.error('[golf-outing] insert failed:', insertError)
     return NextResponse.json({ error: 'Failed to save registration' }, { status: 500 })
   }
+
+  // Fire Email #1 (registration received). Non-blocking so a mail failure
+  // never stops the user from being redirected to Stripe.
+  sendGolfRegistrationReceivedEmail({
+    firstName: first_name,
+    lastName: last_name,
+    email,
+    tier,
+    amount: TIER_AMOUNT[tier],
+    partner1_name,
+    partner2_name,
+    partner3_name,
+    sponsor_display_name,
+  }).catch(err => {
+    console.error('[golf-outing] registration email failed:', err)
+  })
 
   // Look up the right Stripe Payment Link for this tier
   const { data: settings } = await supabaseAdmin
