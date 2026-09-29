@@ -14,6 +14,8 @@ const NAV_LINKS = [
   { href: '/contact', label: 'Contact' },
 ]
 
+const TEAM_STORE_URL = 'https://store.travelchamps.com/philadelphia_little_quakers/shop/home'
+
 export default function Header({ donateUrl }: { donateUrl?: string }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -44,6 +46,14 @@ export default function Header({ donateUrl }: { donateUrl?: string }) {
               {label}
             </Link>
           ))}
+          <a
+            href={TEAM_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-2 rounded-lg text-sm font-semibold text-gray-400 hover:text-white transition-colors no-underline"
+          >
+            Team Store
+          </a>
           {donateUrl && (
             <a
               href={donateUrl}
@@ -95,6 +105,15 @@ export default function Header({ donateUrl }: { donateUrl?: string }) {
               {label}
             </Link>
           ))}
+          <a
+            href={TEAM_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setOpen(false)}
+            className="block py-3 text-base font-semibold border-b border-white/5 text-gray-300 no-underline"
+          >
+            Team Store
+          </a>
           <Link
             href="/register"
             onClick={() => setOpen(false)}

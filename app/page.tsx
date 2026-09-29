@@ -157,6 +157,25 @@ export default async function Home() {
           </div>
         </section>
 
+        {/* ── TEAM STORE STRIP ── */}
+        <section className="bg-white py-14 px-4 border-b border-gray-100">
+          <div className="max-w-4xl mx-auto text-center">
+            <p className="text-[#B8962A] font-bold uppercase tracking-widest text-sm mb-3">Gear Up</p>
+            <h2 className="text-3xl md:text-4xl font-black mb-4 leading-tight">Little Quakers Team Store</h2>
+            <p className="text-gray-600 text-lg mb-8 max-w-2xl mx-auto">
+              Official Little Quakers gear for players, families, and alumni. Every purchase supports the program.
+            </p>
+            <a
+              href="https://store.travelchamps.com/philadelphia_little_quakers/shop/home"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block bg-[#0A0A0A] hover:bg-[#333] text-white font-bold px-8 py-4 rounded-lg text-lg transition-colors no-underline"
+            >
+              Shop the Store
+            </a>
+          </div>
+        </section>
+
         {/* ── LATEST NEWS ── */}
         {posts && posts.length > 0 && (
           <section className="py-20 px-4 bg-white">
