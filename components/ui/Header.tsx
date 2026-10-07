@@ -5,6 +5,11 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 
+export interface HeaderProps {
+  donateUrl?: string
+  registrationOpen?: boolean
+}
+
 const NAV_LINKS = [
   { href: '/about', label: 'About' },
   { href: '/roster', label: 'Roster' },
@@ -16,7 +21,7 @@ const NAV_LINKS = [
 
 const TEAM_STORE_URL = 'https://store.travelchamps.com/philadelphia_little_quakers/shop/home'
 
-export default function Header({ donateUrl }: { donateUrl?: string }) {
+export default function Header({ donateUrl, registrationOpen = true }: HeaderProps) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
 
@@ -64,12 +69,21 @@ export default function Header({ donateUrl }: { donateUrl?: string }) {
               Donate
             </a>
           )}
-          <Link
-            href="/register"
-            className="ml-2 bg-[#B8962A] hover:bg-[#8B7020] text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors no-underline"
-          >
-            Register
-          </Link>
+          {registrationOpen ? (
+            <Link
+              href="/register"
+              className="ml-2 bg-[#B8962A] hover:bg-[#8B7020] text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors no-underline"
+            >
+              Register
+            </Link>
+          ) : (
+            <Link
+              href="/events/golf-outing"
+              className="ml-2 bg-[#B8962A] hover:bg-[#8B7020] text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors no-underline"
+            >
+              Golf Outing
+            </Link>
+          )}
         </nav>
 
         {/* Mobile hamburger */}
@@ -114,13 +128,23 @@ export default function Header({ donateUrl }: { donateUrl?: string }) {
           >
             Team Store
           </a>
-          <Link
-            href="/register"
-            onClick={() => setOpen(false)}
-            className="mt-4 block text-center bg-[#B8962A] text-white font-bold py-3 px-6 rounded-lg no-underline"
-          >
-            Register for Tryouts
-          </Link>
+          {registrationOpen ? (
+            <Link
+              href="/register"
+              onClick={() => setOpen(false)}
+              className="mt-4 block text-center bg-[#B8962A] text-white font-bold py-3 px-6 rounded-lg no-underline"
+            >
+              Register for Tryouts
+            </Link>
+          ) : (
+            <Link
+              href="/events/golf-outing"
+              onClick={() => setOpen(false)}
+              className="mt-4 block text-center bg-[#B8962A] text-white font-bold py-3 px-6 rounded-lg no-underline"
+            >
+              Golf Outing
+            </Link>
+          )}
           {donateUrl && (
             <a
               href={donateUrl}

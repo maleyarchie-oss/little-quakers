@@ -40,13 +40,16 @@ export default async function CalendarPage() {
             </a>
           </div>
 
-          {/* 2026 Tryouts — surfaced at the top, ahead of the broader calendar */}
+          {/* 2026 Tryouts — complete; kept visible with reduced emphasis */}
           <section className="mb-10 bg-[#0A0A0A] rounded-2xl p-6 md:p-8 text-white">
             <p className="text-[#B8962A] font-bold uppercase tracking-widest text-sm mb-2">
-              First Up
+              2026 Tryouts
             </p>
-            <h2 className="text-2xl md:text-3xl font-black mb-5">2026 Tryouts</h2>
-            <TryoutScheduleBlock variant="dark" />
+            <h2 className="text-2xl md:text-3xl font-black mb-3">Tryouts complete.</h2>
+            <p className="text-gray-300 mb-5">
+              Thank you to every player who came out to Penn Charter. The roster is being finalized by the coaching staff.
+            </p>
+            <TryoutScheduleBlock variant="dark" className="opacity-60" />
           </section>
 
           <CalendarView events={events} />

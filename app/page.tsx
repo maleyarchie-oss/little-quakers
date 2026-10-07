@@ -58,8 +58,8 @@ export default async function Home() {
                   Register for Tryouts →
                 </Link>
               ) : (
-                <Link href="/contact" className="btn-primary text-lg px-10 py-4">
-                  Get Notified for 2026
+                <Link href="/events/golf-outing" className="btn-primary text-lg px-10 py-4">
+                  Golf Outing · Oct 19
                 </Link>
               )}
               <Link href="/about" className="btn-secondary text-lg px-10 py-4">
@@ -218,27 +218,38 @@ export default async function Home() {
         <section className="bg-[#0A0A0A] py-24 px-4 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-[#B8962A]/5" />
           <div className="relative max-w-4xl mx-auto">
-            <p className="text-[#B8962A] font-bold uppercase tracking-widest text-sm mb-4">2026 Season</p>
-            <h2 className="text-4xl md:text-5xl font-black text-white mb-6 leading-tight">
-              Think You Have What<br />It Takes?
-            </h2>
-            <p className="text-gray-400 text-lg mb-10 leading-relaxed">
-              Register for tryouts and earn your place on Philadelphia's finest youth football team.
-            </p>
-
-            <TryoutScheduleBlock variant="dark" className="text-left mb-10" />
-
             {registrationOpen ? (
-              <Link href="/register" className="btn-primary text-xl px-14 py-5">
-                Register for Tryouts
-              </Link>
-            ) : (
-              <div>
-                <p className="text-gray-500 mb-4">Registration is currently closed.</p>
-                <Link href="/contact" className="btn-secondary text-lg px-10 py-4">
-                  Get Notified When It Opens
+              <>
+                <p className="text-[#B8962A] font-bold uppercase tracking-widest text-sm mb-4">2026 Season</p>
+                <h2 className="text-4xl md:text-5xl font-black text-white mb-6 leading-tight">
+                  Think You Have What<br />It Takes?
+                </h2>
+                <p className="text-gray-400 text-lg mb-10 leading-relaxed">
+                  Register for tryouts and earn your place on Philadelphia's finest youth football team.
+                </p>
+                <TryoutScheduleBlock variant="dark" className="text-left mb-10" />
+                <Link href="/register" className="btn-primary text-xl px-14 py-5">
+                  Register for Tryouts
                 </Link>
-              </div>
+              </>
+            ) : (
+              <>
+                <p className="text-[#B8962A] font-bold uppercase tracking-widest text-sm mb-4">2026 Season</p>
+                <h2 className="text-4xl md:text-5xl font-black text-white mb-6 leading-tight">
+                  Tryouts Complete.<br />Now for the Golf Outing.
+                </h2>
+                <p className="text-gray-400 text-lg mb-10 leading-relaxed">
+                  Thank you to every family who tried out for the 2026 Little Quakers. The roster is being finalized. Next up: our annual Golf Outing at Bluestone Country Club on October 19.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Link href="/events/golf-outing" className="btn-primary text-xl px-14 py-5">
+                    Golf Outing · Oct 19
+                  </Link>
+                  <Link href="/contact" className="btn-secondary text-lg px-10 py-4">
+                    Get Notified for 2027
+                  </Link>
+                </div>
+              </>
             )}
           </div>
         </section>
