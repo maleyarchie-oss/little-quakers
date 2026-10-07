@@ -44,8 +44,33 @@ export default function SettingsForm({ settings }: { settings: Settings | null }
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [calendarCreating, setCalendarCreating] = useState(false)
+  const [togglingReg, setTogglingReg] = useState(false)
 
   const set = (k: keyof Settings, v: string | boolean) => setForm(f => ({ ...f, [k]: v }))
+
+  // Auto-save for the registration_open toggle. Toggles everywhere else
+  // on the web expect to persist instantly, not wait on a Save button.
+  const toggleRegistration = async () => {
+    const next = !form.registration_open
+    set('registration_open', next)
+    setTogglingReg(true)
+    setMessage('')
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, registration_open: next }),
+      })
+      if (!res.ok) throw new Error('save failed')
+      setMessage(next ? 'Registration is now OPEN.' : 'Registration is now CLOSED.')
+    } catch {
+      // Revert optimistic UI change on failure
+      set('registration_open', !next)
+      setMessage('Could not save. Please try again.')
+    } finally {
+      setTogglingReg(false)
+    }
+  }
 
   const save = async () => {
     setSaving(true); setMessage('')
@@ -86,10 +111,12 @@ export default function SettingsForm({ settings }: { settings: Settings | null }
         <div className="flex items-center gap-4 mb-6">
           <button
             type="button"
-            onClick={() => set('registration_open', !form.registration_open)}
-            className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
+            onClick={toggleRegistration}
+            disabled={togglingReg}
+            className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors disabled:opacity-60 ${
               form.registration_open ? 'bg-[#B8962A]' : 'bg-gray-300'
             }`}
+            aria-label={form.registration_open ? 'Close registration' : 'Open registration'}
           >
             <span className={`inline-block h-6 w-6 rounded-full bg-white shadow transition-transform ${
               form.registration_open ? 'translate-x-7' : 'translate-x-1'
@@ -99,8 +126,12 @@ export default function SettingsForm({ settings }: { settings: Settings | null }
             Registration is <span className={form.registration_open ? 'text-green-600' : 'text-gray-500'}>
               {form.registration_open ? 'OPEN' : 'CLOSED'}
             </span>
+            {togglingReg && (
+              <span className="ml-2 text-xs text-gray-500 font-normal">saving…</span>
+            )}
           </span>
         </div>
+        <p className="text-gray-500 text-xs mb-5">Toggles save automatically. Other fields on this page still require &quot;Save All Settings&quot; at the bottom.</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label className="form-label">Tryout Date</label>
