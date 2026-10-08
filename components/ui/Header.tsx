@@ -12,7 +12,6 @@ export interface HeaderProps {
 
 const NAV_LINKS = [
   { href: '/about', label: 'About' },
-  { href: '/roster', label: 'Roster' },
   { href: '/calendar', label: 'Schedule' },
   { href: '/events', label: 'Events' },
   { href: '/blog', label: 'News' },
