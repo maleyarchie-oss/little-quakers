@@ -115,11 +115,22 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
           poolIds: pool.map(p => p.id),
         }),
       })
-      if (!res.ok) throw new Error('Failed to save')
+      // Try to parse JSON for a real error message; fall back if server
+      // returned HTML (e.g. 413 Request Entity Too Large).
+      let serverMessage = ''
+      const raw = await res.text()
+      try {
+        const parsed = raw ? JSON.parse(raw) : {}
+        serverMessage = parsed.error || ''
+      } catch {
+        serverMessage = `HTTP ${res.status}`
+      }
+      if (!res.ok) throw new Error(serverMessage || 'Failed to save')
       setSaved(true)
       setMessage('Roster saved successfully!')
-    } catch {
-      setError('Failed to save roster. Please try again.')
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Failed to save roster'
+      setError(`Failed to save roster: ${msg}`)
     } finally {
       setSaving(false)
     }

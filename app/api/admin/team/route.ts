@@ -8,24 +8,59 @@ export async function POST(req: NextRequest) {
   const session = await getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { rosterIds, poolIds } = await req.json()
+  let body: { rosterIds?: unknown; poolIds?: unknown }
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+  }
+  const rosterIds = Array.isArray(body.rosterIds) ? (body.rosterIds as string[]) : []
+  const poolIds = Array.isArray(body.poolIds) ? (body.poolIds as string[]) : []
 
-  const [madeResult, notResult] = await Promise.all([
-    supabaseAdmin
-      .from('registrants')
-      .update({ status: 'made_team' })
-      .in('id', rosterIds),
-    supabaseAdmin
-      .from('registrants')
-      .update({ status: 'not_made_team' })
-      .in('id', poolIds),
-  ])
-
-  if (madeResult.error || notResult.error) {
-    return NextResponse.json({ error: 'Failed to update roster' }, { status: 500 })
+  // Supabase .in() with an empty array matches nothing (works), but can also
+  // produce odd behavior across client versions. Short-circuit the no-op case
+  // explicitly so we never issue the empty UPDATE.
+  const ops: PromiseLike<{ error: unknown }>[] = []
+  if (rosterIds.length > 0) {
+    ops.push(
+      supabaseAdmin
+        .from('registrants')
+        .update({ status: 'made_team' })
+        .in('id', rosterIds) as unknown as PromiseLike<{ error: unknown }>
+    )
+  }
+  if (poolIds.length > 0) {
+    ops.push(
+      supabaseAdmin
+        .from('registrants')
+        .update({ status: 'not_made_team' })
+        .in('id', poolIds) as unknown as PromiseLike<{ error: unknown }>
+    )
   }
 
-  return NextResponse.json({ success: true })
+  if (ops.length === 0) {
+    return NextResponse.json({
+      success: true,
+      note: 'No changes: both roster and pool were empty',
+    })
+  }
+
+  const results = await Promise.all(ops)
+  const firstErr = results.find(r => r.error)?.error
+  if (firstErr) {
+    // Surface the real Supabase error so we're not debugging blind in the UI.
+    const msg = typeof firstErr === 'object' && firstErr !== null && 'message' in firstErr
+      ? String((firstErr as { message: unknown }).message)
+      : 'Unknown database error'
+    console.error('[admin/team] save failed:', firstErr)
+    return NextResponse.json({ error: `Database error: ${msg}` }, { status: 500 })
+  }
+
+  return NextResponse.json({
+    success: true,
+    rosterUpdated: rosterIds.length,
+    poolUpdated: poolIds.length,
+  })
 }
 
 type Recipients = 'made_only' | 'not_made_only' | 'both'
