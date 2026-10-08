@@ -49,6 +49,15 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
 
+  // Preview-before-send state
+  type PreviewRow = { id: string; name: string; email: string }
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [previewMade, setPreviewMade] = useState<PreviewRow[]>([])
+  const [previewNotMade, setPreviewNotMade] = useState<PreviewRow[]>([])
+  const [recipients, setRecipients] = useState<'made_only' | 'not_made_only' | 'both'>('made_only')
+  const [confirmText, setConfirmText] = useState('')
+
   const existing = registrants.filter(r => r.status === 'made_team').map(r => r.id)
 
   const [pool, setPool] = useState<Player[]>(
@@ -116,17 +125,50 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
     }
   }
 
+  // Open the preview modal: fetch the actual recipient lists from the server
+  // so what PJ sees matches reality (not just what's in client state).
+  const openPreview = async () => {
+    setError(''); setMessage('')
+    setPreviewLoading(true)
+    setPreviewOpen(true)
+    try {
+      const res = await fetch('/api/admin/team?preview=1')
+      if (!res.ok) throw new Error('preview failed')
+      const data = await res.json()
+      setPreviewMade(data.made || [])
+      setPreviewNotMade(data.notMade || [])
+    } catch {
+      setError('Could not load preview. Please try again.')
+      setPreviewOpen(false)
+    } finally {
+      setPreviewLoading(false)
+    }
+  }
+
+  const closePreview = () => {
+    setPreviewOpen(false)
+    setConfirmText('')
+    setRecipients('made_only')
+  }
+
   const sendTeamEmails = async () => {
-    if (!confirm('This will send "Made the Team" emails to all players on the roster and "Thank you for trying out" emails to all others. Continue?')) return
     setSendingEmails(true); setError(''); setMessage('')
     try {
       const res = await fetch('/api/admin/team', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rosterIds: roster.map(p => p.id) }),
+        body: JSON.stringify({
+          rosterIds: previewMade.map(p => p.id),
+          recipients,
+        }),
       })
       if (!res.ok) throw new Error('Failed to send emails')
-      setMessage('Emails sent to all registrants!')
+      const result = await res.json()
+      const parts: string[] = []
+      if (result.madeCount) parts.push(`${result.madeCount} 'Made Team'`)
+      if (result.notMadeCount) parts.push(`${result.notMadeCount} 'Not Made Team'`)
+      setMessage(`Sent ${parts.join(' + ') || '0'} emails.`)
+      closePreview()
     } catch {
       setError('Failed to send emails. Please try again.')
     } finally {
@@ -163,11 +205,11 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
           </button>
           <button
             className="btn-black py-2 px-5 text-sm"
-            onClick={sendTeamEmails}
+            onClick={openPreview}
             disabled={sendingEmails || !saved}
             title={!saved ? 'Save roster first' : ''}
           >
-            {sendingEmails ? 'Sending…' : 'Send Team Emails'}
+            {sendingEmails ? 'Sending…' : 'Send Team Emails…'}
           </button>
         </div>
       </div>
@@ -175,6 +217,165 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
       {(error || message) && (
         <div className={`rounded-lg px-4 py-3 mb-4 text-sm ${error ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
           {error || message}
+        </div>
+      )}
+
+      {/* Preview + confirm modal */}
+      {previewOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            <div className="px-6 py-5 border-b border-gray-100">
+              <h2 className="text-2xl font-black">Review before sending</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                These lists come from the live database, not local state. Verify every name.
+              </p>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+              {previewLoading ? (
+                <p className="text-gray-500">Loading recipients…</p>
+              ) : (
+                <>
+                  {/* Who to email */}
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Who gets emailed</p>
+                    <div className="space-y-2">
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="recipients"
+                          value="made_only"
+                          checked={recipients === 'made_only'}
+                          onChange={() => setRecipients('made_only')}
+                          className="mt-1"
+                        />
+                        <span>
+                          <span className="font-semibold">Only players on the roster</span>{' '}
+                          <span className="text-green-700">({previewMade.length} will get the Made Team email)</span>
+                        </span>
+                      </label>
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="recipients"
+                          value="not_made_only"
+                          checked={recipients === 'not_made_only'}
+                          onChange={() => setRecipients('not_made_only')}
+                          className="mt-1"
+                        />
+                        <span>
+                          <span className="font-semibold">Only players NOT on the roster</span>{' '}
+                          <span className="text-amber-700">({previewNotMade.length} will get the Not Made Team email)</span>
+                        </span>
+                      </label>
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="recipients"
+                          value="both"
+                          checked={recipients === 'both'}
+                          onChange={() => setRecipients('both')}
+                          className="mt-1"
+                        />
+                        <span>
+                          <span className="font-semibold">Both lists</span>{' '}
+                          <span className="text-gray-500">({previewMade.length + previewNotMade.length} total)</span>
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* The actual names */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-widest text-green-700 mb-2">
+                        Made Team — {previewMade.length}
+                      </p>
+                      <div className="border border-green-200 rounded-lg bg-green-50 max-h-64 overflow-y-auto">
+                        {previewMade.length === 0 ? (
+                          <p className="text-sm text-gray-500 p-3">No players on the roster yet.</p>
+                        ) : (
+                          <ul className="divide-y divide-green-200">
+                            {previewMade.map(r => (
+                              <li key={r.id} className="px-3 py-2 text-sm">
+                                <p className="font-semibold">{r.name}</p>
+                                <p className="text-xs text-gray-500 truncate">{r.email}</p>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-widest text-amber-700 mb-2">
+                        Not Made Team — {previewNotMade.length}
+                      </p>
+                      <div className="border border-amber-200 rounded-lg bg-amber-50 max-h-64 overflow-y-auto">
+                        {previewNotMade.length === 0 ? (
+                          <p className="text-sm text-gray-500 p-3">No players marked as not-made-team yet.</p>
+                        ) : (
+                          <ul className="divide-y divide-amber-200">
+                            {previewNotMade.map(r => (
+                              <li key={r.id} className="px-3 py-2 text-sm">
+                                <p className="font-semibold">{r.name}</p>
+                                <p className="text-xs text-gray-500 truncate">{r.email}</p>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Typed confirmation */}
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">
+                      Type <code className="bg-gray-100 px-1 rounded">SEND</code> to confirm
+                    </p>
+                    <input
+                      className="form-input"
+                      value={confirmText}
+                      onChange={e => setConfirmText(e.target.value)}
+                      placeholder="SEND"
+                      autoFocus
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between gap-3">
+              <button
+                onClick={closePreview}
+                disabled={sendingEmails}
+                className="text-sm font-semibold text-gray-700 hover:text-gray-900 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={sendTeamEmails}
+                disabled={
+                  sendingEmails ||
+                  previewLoading ||
+                  confirmText.trim().toUpperCase() !== 'SEND' ||
+                  (recipients === 'made_only' && previewMade.length === 0) ||
+                  (recipients === 'not_made_only' && previewNotMade.length === 0) ||
+                  (recipients === 'both' && previewMade.length + previewNotMade.length === 0)
+                }
+                className="bg-black text-white font-bold px-6 py-3 rounded-lg text-sm disabled:opacity-40"
+              >
+                {sendingEmails ? 'Sending…' : `Send ${
+                  recipients === 'made_only' ? previewMade.length :
+                  recipients === 'not_made_only' ? previewNotMade.length :
+                  previewMade.length + previewNotMade.length
+                } email${(
+                  recipients === 'made_only' ? previewMade.length :
+                  recipients === 'not_made_only' ? previewNotMade.length :
+                  previewMade.length + previewNotMade.length
+                ) === 1 ? '' : 's'}`}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

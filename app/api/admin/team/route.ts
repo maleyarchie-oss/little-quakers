@@ -28,12 +28,56 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ success: true })
 }
 
+type Recipients = 'made_only' | 'not_made_only' | 'both'
+
+function isValidRecipients(v: unknown): v is Recipients {
+  return v === 'made_only' || v === 'not_made_only' || v === 'both'
+}
+
+// GET /api/admin/team?preview=1 — returns the lists we WOULD email, no sending.
+// Lets the admin UI show PJ exactly who's about to get what before firing.
+export async function GET(req: NextRequest) {
+  const session = await getSession()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const url = new URL(req.url)
+  if (url.searchParams.get('preview') !== '1') {
+    return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
+  }
+
+  const { data: all } = await supabaseAdmin
+    .from('registrants')
+    .select('id, email, player_first_name, player_last_name, status')
+
+  const made = (all || []).filter(r => r.status === 'made_team')
+  const notMade = (all || []).filter(r => r.status === 'not_made_team')
+
+  return NextResponse.json({
+    made: made.map(r => ({
+      id: r.id,
+      name: `${r.player_first_name} ${r.player_last_name}`,
+      email: r.email,
+    })),
+    notMade: notMade.map(r => ({
+      id: r.id,
+      name: `${r.player_first_name} ${r.player_last_name}`,
+      email: r.email,
+    })),
+  })
+}
+
 // Send team notification emails
 export async function PUT(req: NextRequest) {
   const session = await getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { rosterIds } = await req.json()
+  const body = await req.json().catch(() => ({}))
+  const { rosterIds } = body as { rosterIds?: unknown }
+  const recipients: Recipients = isValidRecipients(body.recipients) ? body.recipients : 'both'
+
+  if (!Array.isArray(rosterIds)) {
+    return NextResponse.json({ error: 'rosterIds array required' }, { status: 400 })
+  }
 
   const { data: settings } = await supabaseAdmin.from('settings').select('*').single()
   const { data: allRegistrants } = await supabaseAdmin
@@ -42,18 +86,25 @@ export async function PUT(req: NextRequest) {
 
   if (!allRegistrants) return NextResponse.json({ error: 'No registrants found' }, { status: 404 })
 
-  const rosterSet = new Set(rosterIds)
+  const rosterSet = new Set(rosterIds as string[])
+
+  let madeCount = 0
+  let notMadeCount = 0
 
   const sends = allRegistrants.map(async r => {
     const playerName = `${r.player_first_name} ${r.player_last_name}`
-    if (rosterSet.has(r.id)) {
+    const onRoster = rosterSet.has(r.id)
+
+    if (onRoster && (recipients === 'made_only' || recipients === 'both')) {
+      madeCount++
       await sendMadeTeamEmail(
         r.email,
         playerName,
         settings?.made_team_subject || 'Congratulations – You Made the Little Quakers!',
         settings?.made_team_body || `Dear ${playerName},\n\nCongratulations! You have been selected to join the Philadelphia Little Quakers!\n\nWe are thrilled to welcome you to the team. More details about next steps will follow soon.\n\nGo Little Quakers!\n\n— The Coaching Staff`
       )
-    } else {
+    } else if (!onRoster && (recipients === 'not_made_only' || recipients === 'both')) {
+      notMadeCount++
       await sendNotMadeTeamEmail(
         r.email,
         playerName,
@@ -64,5 +115,5 @@ export async function PUT(req: NextRequest) {
   })
 
   await Promise.allSettled(sends)
-  return NextResponse.json({ success: true })
+  return NextResponse.json({ success: true, madeCount, notMadeCount })
 }
