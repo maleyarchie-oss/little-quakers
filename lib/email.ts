@@ -8,7 +8,16 @@ function getResend() {
   return _resend
 }
 
-const FROM = () => process.env.EMAIL_FROM || 'info@littlequakers.com'
+const FROM = () => process.env.EMAIL_FROM || 'info@littlequakers.us'
+const REPLY_TO = () => process.env.EMAIL_REPLY_TO || FROM()
+
+// Coaches / staff who should be BCC'd on team-selection emails so they can
+// track who got what. Email-list envvar, comma-separated.
+const MADE_TEAM_BCC = () =>
+  (process.env.MADE_TEAM_BCC || 'crahill@penncharter.com')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
 
 export async function sendConfirmationEmail(
   to: string,
@@ -45,6 +54,8 @@ export async function sendMadeTeamEmail(
   await getResend().emails.send({
     from: FROM(),
     to,
+    bcc: MADE_TEAM_BCC(),
+    replyTo: REPLY_TO(),
     subject,
     html: wrapInTemplate(playerName, body),
   })
