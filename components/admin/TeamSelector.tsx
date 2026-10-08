@@ -61,6 +61,14 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
   // only to a subset (e.g., the 28 who missed yesterday's send).
   const [selectedMade, setSelectedMade] = useState<Set<string>>(new Set())
   const [selectedNotMade, setSelectedNotMade] = useState<Set<string>>(new Set())
+  // Custom one-off copy (overrides settings for this send only)
+  const [customMadeSubject, setCustomMadeSubject] = useState('')
+  const [customMadeBody, setCustomMadeBody] = useState('')
+  const [customNotMadeSubject, setCustomNotMadeSubject] = useState('')
+  const [customNotMadeBody, setCustomNotMadeBody] = useState('')
+  // Test-send state
+  const [testEmail, setTestEmail] = useState('')
+  const [testSending, setTestSending] = useState(false)
 
   const existing = registrants.filter(r => r.status === 'made_team').map(r => r.id)
 
@@ -204,17 +212,50 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
     return [...Array.from(selectedMade), ...Array.from(selectedNotMade)]
   })()
 
+  const buildPayload = (extra: Record<string, unknown> = {}) => ({
+    rosterIds: previewMade.map(p => p.id),
+    recipients,
+    onlyIds: effectiveIds,
+    customMadeSubject: customMadeSubject.trim() || undefined,
+    customMadeBody: customMadeBody.trim() || undefined,
+    customNotMadeSubject: customNotMadeSubject.trim() || undefined,
+    customNotMadeBody: customNotMadeBody.trim() || undefined,
+    ...extra,
+  })
+
+  const sendTestEmail = async () => {
+    if (!testEmail.trim()) {
+      setError('Enter an email address for the test.')
+      return
+    }
+    setTestSending(true); setError(''); setMessage('')
+    try {
+      const res = await fetch('/api/admin/team', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildPayload({ testEmail: testEmail.trim() })),
+      })
+      const result = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(result.error || 'Test send failed')
+      if (result.failed > 0) {
+        setError(`Test send failed: ${(result.failures?.[0]?.reason) || 'unknown error'}`)
+        return
+      }
+      setMessage(`Test email sent to ${testEmail.trim()}. Check your inbox before firing the full batch.`)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Test send failed.')
+    } finally {
+      setTestSending(false)
+    }
+  }
+
   const sendTeamEmails = async () => {
     setSendingEmails(true); setError(''); setMessage('')
     try {
       const res = await fetch('/api/admin/team', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          rosterIds: previewMade.map(p => p.id),
-          recipients,
-          onlyIds: effectiveIds,
-        }),
+        body: JSON.stringify(buildPayload()),
       })
       const result = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(result.error || 'Failed to send emails')
@@ -346,6 +387,88 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
                           <span className="text-gray-500">({selectedMade.size + selectedNotMade.size} total checked)</span>
                         </span>
                       </label>
+                    </div>
+                  </div>
+
+                  {/* Custom email copy for Made Team (shown when sending Made Team) */}
+                  {(recipients === 'made_only' || recipients === 'both') && (
+                    <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-bold uppercase tracking-widest text-gray-700">Made Team email</p>
+                        <p className="text-xs text-gray-500">Leave blank to use default from Settings</p>
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-gray-600 block mb-1">Subject</label>
+                        <input
+                          className="form-input w-full text-sm"
+                          value={customMadeSubject}
+                          onChange={e => setCustomMadeSubject(e.target.value)}
+                          placeholder="(uses Settings default if blank)"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-gray-600 block mb-1">Body</label>
+                        <textarea
+                          className="form-input w-full text-sm font-mono"
+                          rows={12}
+                          value={customMadeBody}
+                          onChange={e => setCustomMadeBody(e.target.value)}
+                          placeholder="(uses Settings default if blank)"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Line breaks are preserved. HTML is not supported in the body.</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Custom email copy for Not Made Team (shown when sending Not Made Team) */}
+                  {(recipients === 'not_made_only' || recipients === 'both') && (
+                    <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-bold uppercase tracking-widest text-gray-700">Not Made Team email</p>
+                        <p className="text-xs text-gray-500">Leave blank to use default from Settings</p>
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-gray-600 block mb-1">Subject</label>
+                        <input
+                          className="form-input w-full text-sm"
+                          value={customNotMadeSubject}
+                          onChange={e => setCustomNotMadeSubject(e.target.value)}
+                          placeholder="(uses Settings default if blank)"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-gray-600 block mb-1">Body</label>
+                        <textarea
+                          className="form-input w-full text-sm font-mono"
+                          rows={10}
+                          value={customNotMadeBody}
+                          onChange={e => setCustomNotMadeBody(e.target.value)}
+                          placeholder="(uses Settings default if blank)"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Test send: fire one copy to an email address for preview */}
+                  <div className="border border-blue-200 rounded-lg p-4 bg-blue-50 space-y-2">
+                    <p className="text-xs font-bold uppercase tracking-widest text-blue-800">Send a test first (recommended)</p>
+                    <p className="text-xs text-blue-700">We'll send one copy of the rendered email to the address below. Nothing goes to real recipients.</p>
+                    <div className="flex gap-2">
+                      <input
+                        type="email"
+                        className="form-input flex-1 text-sm"
+                        value={testEmail}
+                        onChange={e => setTestEmail(e.target.value)}
+                        placeholder="your@email.com"
+                      />
+                      <button
+                        type="button"
+                        onClick={sendTestEmail}
+                        disabled={testSending || !testEmail.trim()}
+                        className="bg-blue-600 text-white font-bold px-4 py-2 rounded-lg text-sm disabled:opacity-40 whitespace-nowrap"
+                      >
+                        {testSending ? 'Sending…' : 'Send Test'}
+                      </button>
                     </div>
                   </div>
 
