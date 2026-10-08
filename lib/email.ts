@@ -8,16 +8,125 @@ function getResend() {
   return _resend
 }
 
-const FROM = () => process.env.EMAIL_FROM || 'info@littlequakers.us'
-const REPLY_TO = () => process.env.EMAIL_REPLY_TO || FROM()
+export const FROM = () => process.env.EMAIL_FROM || 'info@littlequakers.us'
+export const REPLY_TO = () => process.env.EMAIL_REPLY_TO || FROM()
 
 // Coaches / staff who should be BCC'd on team-selection emails so they can
 // track who got what. Email-list envvar, comma-separated.
-const MADE_TEAM_BCC = () =>
+export const MADE_TEAM_BCC = () =>
   (process.env.MADE_TEAM_BCC || 'crahill@penncharter.com')
     .split(',')
     .map(s => s.trim())
     .filter(Boolean)
+
+// -----------------------------------------------------------------------
+// Shared throttled bulk sender
+//
+// Resend caps API calls at 10/sec/team. The old code fired everything in
+// parallel via Promise.allSettled, which silently dropped anything that
+// returned 429 — which is how 28 of 38 Made Team emails disappeared on
+// 2026-10-08. This helper caps us at 5/sec, retries on 429, and reports
+// per-recipient success / failure so the caller can tell the user.
+// -----------------------------------------------------------------------
+
+export interface BulkSendItem {
+  email: string
+  label?: string // human-readable identifier (player name, etc.) for reporting
+  payload: {
+    from?: string
+    to: string
+    bcc?: string[]
+    replyTo?: string
+    subject: string
+    html: string
+  }
+}
+
+export interface BulkSendResult {
+  attempted: number
+  succeeded: number
+  failed: number
+  failures: { email: string; label?: string; reason: string }[]
+}
+
+async function sendWithRetry(
+  item: BulkSendItem,
+  attempt = 1,
+): Promise<{ ok: true } | { ok: false; reason: string }> {
+  try {
+    const result = await getResend().emails.send({
+      from: item.payload.from || FROM(),
+      to: item.payload.to,
+      bcc: item.payload.bcc,
+      replyTo: item.payload.replyTo,
+      subject: item.payload.subject,
+      html: item.payload.html,
+    })
+    // Resend's SDK returns { data, error }. error === null means success.
+    const err = (result as unknown as { error?: { message?: string; statusCode?: number } }).error
+    if (err) {
+      const code = err.statusCode
+      const msg = err.message || 'unknown error'
+      // 429 (rate limit) or 5xx: retry with backoff
+      if ((code === 429 || (code && code >= 500)) && attempt < 4) {
+        const waitMs = 500 * Math.pow(2, attempt - 1) + Math.random() * 250
+        await new Promise(r => setTimeout(r, waitMs))
+        return sendWithRetry(item, attempt + 1)
+      }
+      return { ok: false, reason: `${code ? code + ': ' : ''}${msg}` }
+    }
+    return { ok: true }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : 'exception'
+    // Thrown exceptions on 429/network — retry a few times
+    if (attempt < 4 && /rate|429|network|ETIMEDOUT|ECONN/i.test(msg)) {
+      const waitMs = 500 * Math.pow(2, attempt - 1) + Math.random() * 250
+      await new Promise(r => setTimeout(r, waitMs))
+      return sendWithRetry(item, attempt + 1)
+    }
+    return { ok: false, reason: msg }
+  }
+}
+
+// Send a batch of emails at a controlled rate. Returns per-recipient status.
+// `batchSize` requests fire in parallel, then we wait `batchDelayMs` before
+// starting the next batch. Default 5 per 1200ms keeps us under 10/sec safely.
+export async function bulkSend(
+  items: BulkSendItem[],
+  opts: { batchSize?: number; batchDelayMs?: number } = {},
+): Promise<BulkSendResult> {
+  const batchSize = opts.batchSize ?? 5
+  const batchDelayMs = opts.batchDelayMs ?? 1200
+
+  const result: BulkSendResult = {
+    attempted: items.length,
+    succeeded: 0,
+    failed: 0,
+    failures: [],
+  }
+
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = items.slice(i, i + batchSize)
+    const sends = await Promise.all(batch.map(item => sendWithRetry(item)))
+    sends.forEach((r, idx) => {
+      if (r.ok) {
+        result.succeeded++
+      } else {
+        result.failed++
+        result.failures.push({
+          email: batch[idx].email,
+          label: batch[idx].label,
+          reason: r.reason,
+        })
+      }
+    })
+    if (i + batchSize < items.length) {
+      await new Promise(r => setTimeout(r, batchDelayMs))
+    }
+  }
+
+  return result
+}
 
 export async function sendConfirmationEmail(
   to: string,
@@ -91,7 +200,7 @@ export async function sendBroadcastEmail(
   await Promise.allSettled(sends)
 }
 
-function wrapInTemplate(name: string, body: string) {
+export function wrapInTemplate(name: string, body: string) {
   const escaped = body.replace(/\n/g, '<br>')
   return `
 <!DOCTYPE html>

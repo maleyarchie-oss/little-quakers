@@ -57,6 +57,10 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
   const [previewNotMade, setPreviewNotMade] = useState<PreviewRow[]>([])
   const [recipients, setRecipients] = useState<'made_only' | 'not_made_only' | 'both'>('made_only')
   const [confirmText, setConfirmText] = useState('')
+  // Per-recipient opt-in checkboxes (default: all checked). Lets PJ send
+  // only to a subset (e.g., the 28 who missed yesterday's send).
+  const [selectedMade, setSelectedMade] = useState<Set<string>>(new Set())
+  const [selectedNotMade, setSelectedNotMade] = useState<Set<string>>(new Set())
 
   const existing = registrants.filter(r => r.status === 'made_team').map(r => r.id)
 
@@ -146,8 +150,13 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
       const res = await fetch('/api/admin/team?preview=1')
       if (!res.ok) throw new Error('preview failed')
       const data = await res.json()
-      setPreviewMade(data.made || [])
-      setPreviewNotMade(data.notMade || [])
+      const made: PreviewRow[] = data.made || []
+      const notMade: PreviewRow[] = data.notMade || []
+      setPreviewMade(made)
+      setPreviewNotMade(notMade)
+      // Default: everyone checked. PJ can uncheck anyone he doesn't want to email.
+      setSelectedMade(new Set(made.map(r => r.id)))
+      setSelectedNotMade(new Set(notMade.map(r => r.id)))
     } catch {
       setError('Could not load preview. Please try again.')
       setPreviewOpen(false)
@@ -156,11 +165,44 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
     }
   }
 
+  const toggleOne = (id: string, list: 'made' | 'notMade') => {
+    if (list === 'made') {
+      setSelectedMade(s => {
+        const next = new Set(s)
+        if (next.has(id)) next.delete(id); else next.add(id)
+        return next
+      })
+    } else {
+      setSelectedNotMade(s => {
+        const next = new Set(s)
+        if (next.has(id)) next.delete(id); else next.add(id)
+        return next
+      })
+    }
+  }
+
+  const checkAll = (list: 'made' | 'notMade', all: boolean) => {
+    if (list === 'made') {
+      setSelectedMade(all ? new Set(previewMade.map(r => r.id)) : new Set())
+    } else {
+      setSelectedNotMade(all ? new Set(previewNotMade.map(r => r.id)) : new Set())
+    }
+  }
+
   const closePreview = () => {
     setPreviewOpen(false)
     setConfirmText('')
     setRecipients('made_only')
+    setSelectedMade(new Set())
+    setSelectedNotMade(new Set())
   }
+
+  // What IDs we'd actually send to given current UI selections
+  const effectiveIds = (() => {
+    if (recipients === 'made_only') return Array.from(selectedMade)
+    if (recipients === 'not_made_only') return Array.from(selectedNotMade)
+    return [...Array.from(selectedMade), ...Array.from(selectedNotMade)]
+  })()
 
   const sendTeamEmails = async () => {
     setSendingEmails(true); setError(''); setMessage('')
@@ -171,17 +213,28 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
         body: JSON.stringify({
           rosterIds: previewMade.map(p => p.id),
           recipients,
+          onlyIds: effectiveIds,
         }),
       })
-      if (!res.ok) throw new Error('Failed to send emails')
-      const result = await res.json()
-      const parts: string[] = []
-      if (result.madeCount) parts.push(`${result.madeCount} 'Made Team'`)
-      if (result.notMadeCount) parts.push(`${result.notMadeCount} 'Not Made Team'`)
-      setMessage(`Sent ${parts.join(' + ') || '0'} emails.`)
+      const result = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(result.error || 'Failed to send emails')
+      const sent = result.sent ?? 0
+      const failed = result.failed ?? 0
+      const failures = (result.failures || []) as { label?: string; reason: string }[]
+      let msg = `Sent ${sent} email${sent === 1 ? '' : 's'}.`
+      if (failed > 0) {
+        const previewNames = failures
+          .slice(0, 5)
+          .map(f => `${f.label || '(unknown)'}: ${f.reason}`)
+          .join('; ')
+        msg += ` ${failed} failed${failures.length ? ` — ${previewNames}` : ''}${failures.length > 5 ? `; +${failures.length - 5} more` : ''}.`
+        setError(msg)
+        return
+      }
+      setMessage(msg)
       closePreview()
-    } catch {
-      setError('Failed to send emails. Please try again.')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to send emails. Please try again.')
     } finally {
       setSendingEmails(false)
     }
@@ -262,7 +315,7 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
                         />
                         <span>
                           <span className="font-semibold">Only players on the roster</span>{' '}
-                          <span className="text-green-700">({previewMade.length} will get the Made Team email)</span>
+                          <span className="text-green-700">({selectedMade.size} of {previewMade.length} checked)</span>
                         </span>
                       </label>
                       <label className="flex items-start gap-3 cursor-pointer">
@@ -276,7 +329,7 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
                         />
                         <span>
                           <span className="font-semibold">Only players NOT on the roster</span>{' '}
-                          <span className="text-amber-700">({previewNotMade.length} will get the Not Made Team email)</span>
+                          <span className="text-amber-700">({selectedNotMade.size} of {previewNotMade.length} checked)</span>
                         </span>
                       </label>
                       <label className="flex items-start gap-3 cursor-pointer">
@@ -290,7 +343,7 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
                         />
                         <span>
                           <span className="font-semibold">Both lists</span>{' '}
-                          <span className="text-gray-500">({previewMade.length + previewNotMade.length} total)</span>
+                          <span className="text-gray-500">({selectedMade.size + selectedNotMade.size} total checked)</span>
                         </span>
                       </label>
                     </div>
@@ -299,18 +352,33 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
                   {/* The actual names */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
-                      <p className="text-xs font-bold uppercase tracking-widest text-green-700 mb-2">
-                        Made Team — {previewMade.length}
-                      </p>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs font-bold uppercase tracking-widest text-green-700">
+                          Made Team — {selectedMade.size} / {previewMade.length}
+                        </p>
+                        <div className="flex gap-2 text-xs">
+                          <button type="button" onClick={() => checkAll('made', true)} className="text-green-700 hover:underline">All</button>
+                          <span className="text-gray-300">|</span>
+                          <button type="button" onClick={() => checkAll('made', false)} className="text-green-700 hover:underline">None</button>
+                        </div>
+                      </div>
                       <div className="border border-green-200 rounded-lg bg-green-50 max-h-64 overflow-y-auto">
                         {previewMade.length === 0 ? (
                           <p className="text-sm text-gray-500 p-3">No players on the roster yet.</p>
                         ) : (
                           <ul className="divide-y divide-green-200">
                             {previewMade.map(r => (
-                              <li key={r.id} className="px-3 py-2 text-sm">
-                                <p className="font-semibold">{r.name}</p>
-                                <p className="text-xs text-gray-500 truncate">{r.email}</p>
+                              <li key={r.id} className="px-3 py-2 text-sm flex items-start gap-2">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedMade.has(r.id)}
+                                  onChange={() => toggleOne(r.id, 'made')}
+                                  className="mt-1"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-semibold">{r.name}</p>
+                                  <p className="text-xs text-gray-500 truncate">{r.email}</p>
+                                </div>
                               </li>
                             ))}
                           </ul>
@@ -318,18 +386,33 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
                       </div>
                     </div>
                     <div>
-                      <p className="text-xs font-bold uppercase tracking-widest text-amber-700 mb-2">
-                        Not Made Team — {previewNotMade.length}
-                      </p>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs font-bold uppercase tracking-widest text-amber-700">
+                          Not Made Team — {selectedNotMade.size} / {previewNotMade.length}
+                        </p>
+                        <div className="flex gap-2 text-xs">
+                          <button type="button" onClick={() => checkAll('notMade', true)} className="text-amber-700 hover:underline">All</button>
+                          <span className="text-gray-300">|</span>
+                          <button type="button" onClick={() => checkAll('notMade', false)} className="text-amber-700 hover:underline">None</button>
+                        </div>
+                      </div>
                       <div className="border border-amber-200 rounded-lg bg-amber-50 max-h-64 overflow-y-auto">
                         {previewNotMade.length === 0 ? (
                           <p className="text-sm text-gray-500 p-3">No players marked as not-made-team yet.</p>
                         ) : (
                           <ul className="divide-y divide-amber-200">
                             {previewNotMade.map(r => (
-                              <li key={r.id} className="px-3 py-2 text-sm">
-                                <p className="font-semibold">{r.name}</p>
-                                <p className="text-xs text-gray-500 truncate">{r.email}</p>
+                              <li key={r.id} className="px-3 py-2 text-sm flex items-start gap-2">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedNotMade.has(r.id)}
+                                  onChange={() => toggleOne(r.id, 'notMade')}
+                                  className="mt-1"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-semibold">{r.name}</p>
+                                  <p className="text-xs text-gray-500 truncate">{r.email}</p>
+                                </div>
                               </li>
                             ))}
                           </ul>
@@ -369,21 +452,11 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
                   sendingEmails ||
                   previewLoading ||
                   confirmText.trim().toUpperCase() !== 'SEND' ||
-                  (recipients === 'made_only' && previewMade.length === 0) ||
-                  (recipients === 'not_made_only' && previewNotMade.length === 0) ||
-                  (recipients === 'both' && previewMade.length + previewNotMade.length === 0)
+                  effectiveIds.length === 0
                 }
                 className="bg-black text-white font-bold px-6 py-3 rounded-lg text-sm disabled:opacity-40"
               >
-                {sendingEmails ? 'Sending…' : `Send ${
-                  recipients === 'made_only' ? previewMade.length :
-                  recipients === 'not_made_only' ? previewNotMade.length :
-                  previewMade.length + previewNotMade.length
-                } email${(
-                  recipients === 'made_only' ? previewMade.length :
-                  recipients === 'not_made_only' ? previewNotMade.length :
-                  previewMade.length + previewNotMade.length
-                ) === 1 ? '' : 's'}`}
+                {sendingEmails ? 'Sending…' : `Send ${effectiveIds.length} email${effectiveIds.length === 1 ? '' : 's'}`}
               </button>
             </div>
           </div>

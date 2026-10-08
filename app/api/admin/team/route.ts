@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { getSession } from '@/lib/auth'
-import { sendMadeTeamEmail, sendNotMadeTeamEmail } from '@/lib/email'
+import { bulkSend, wrapInTemplate, FROM, REPLY_TO, MADE_TEAM_BCC } from '@/lib/email'
 
 // Save roster selections
 export async function POST(req: NextRequest) {
@@ -102,6 +102,12 @@ export async function GET(req: NextRequest) {
 }
 
 // Send team notification emails
+//
+// Supports:
+// - rosterIds: full current roster (required for context; identifies who's on the team)
+// - recipients: 'made_only' | 'not_made_only' | 'both' (default 'both')
+// - onlyIds (optional): send only to these specific registrant IDs. Used by the
+//   targeted-resend tool to retry players who missed the original batch.
 export async function PUT(req: NextRequest) {
   const session = await getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -109,6 +115,10 @@ export async function PUT(req: NextRequest) {
   const body = await req.json().catch(() => ({}))
   const { rosterIds } = body as { rosterIds?: unknown }
   const recipients: Recipients = isValidRecipients(body.recipients) ? body.recipients : 'both'
+  const onlyIds =
+    Array.isArray((body as { onlyIds?: unknown }).onlyIds)
+      ? ((body as { onlyIds: unknown[] }).onlyIds as string[])
+      : null
 
   if (!Array.isArray(rosterIds)) {
     return NextResponse.json({ error: 'rosterIds array required' }, { status: 400 })
@@ -122,33 +132,70 @@ export async function PUT(req: NextRequest) {
   if (!allRegistrants) return NextResponse.json({ error: 'No registrants found' }, { status: 404 })
 
   const rosterSet = new Set(rosterIds as string[])
+  const onlySet = onlyIds ? new Set(onlyIds) : null
 
-  let madeCount = 0
-  let notMadeCount = 0
+  const items = []
 
-  const sends = allRegistrants.map(async r => {
+  for (const r of allRegistrants) {
+    if (onlySet && !onlySet.has(r.id)) continue
     const playerName = `${r.player_first_name} ${r.player_last_name}`
     const onRoster = rosterSet.has(r.id)
 
     if (onRoster && (recipients === 'made_only' || recipients === 'both')) {
-      madeCount++
-      await sendMadeTeamEmail(
-        r.email,
-        playerName,
-        settings?.made_team_subject || 'Congratulations – You Made the Little Quakers!',
-        settings?.made_team_body || `Dear ${playerName},\n\nCongratulations! You have been selected to join the Philadelphia Little Quakers!\n\nWe are thrilled to welcome you to the team. More details about next steps will follow soon.\n\nGo Little Quakers!\n\n— The Coaching Staff`
-      )
+      const subject =
+        settings?.made_team_subject ||
+        'Congratulations – You Made the Little Quakers!'
+      const bodyText =
+        settings?.made_team_body ||
+        `Dear ${playerName},\n\nCongratulations! You have been selected to join the Philadelphia Little Quakers!\n\nWe are thrilled to welcome you to the team. More details about next steps will follow soon.\n\nGo Little Quakers!\n\n— The Coaching Staff`
+      items.push({
+        email: r.email,
+        label: playerName,
+        payload: {
+          from: FROM(),
+          to: r.email,
+          bcc: MADE_TEAM_BCC(),
+          replyTo: REPLY_TO(),
+          subject,
+          html: wrapInTemplate(playerName, bodyText),
+        },
+      })
     } else if (!onRoster && (recipients === 'not_made_only' || recipients === 'both')) {
-      notMadeCount++
-      await sendNotMadeTeamEmail(
-        r.email,
-        playerName,
-        settings?.not_made_team_subject || 'Thank You for Trying Out – Little Quakers',
-        settings?.not_made_team_body || `Dear ${playerName},\n\nThank you for trying out for the Philadelphia Little Quakers. We were impressed by the effort and heart you showed.\n\nWhile we were not able to offer you a spot on this year's roster, we encourage you to keep working hard and try again next year.\n\nGo Little Quakers!\n\n— The Coaching Staff`
-      )
+      const subject =
+        settings?.not_made_team_subject ||
+        'Thank You for Trying Out – Little Quakers'
+      const bodyText =
+        settings?.not_made_team_body ||
+        `Dear ${playerName},\n\nThank you for trying out for the Philadelphia Little Quakers. We were impressed by the effort and heart you showed.\n\nWhile we were not able to offer you a spot on this year's roster, we encourage you to keep working hard and try again next year.\n\nGo Little Quakers!\n\n— The Coaching Staff`
+      items.push({
+        email: r.email,
+        label: playerName,
+        payload: {
+          from: FROM(),
+          to: r.email,
+          replyTo: REPLY_TO(),
+          subject,
+          html: wrapInTemplate(playerName, bodyText),
+        },
+      })
     }
-  })
+  }
 
-  await Promise.allSettled(sends)
-  return NextResponse.json({ success: true, madeCount, notMadeCount })
+  const result = await bulkSend(items)
+
+  // Count by category based on what we attempted (not what succeeded, so UI
+  // can show both numbers).
+  const madeAttempted = items.filter(i =>
+    i.payload.subject === (settings?.made_team_subject || 'Congratulations – You Made the Little Quakers!'),
+  ).length
+  const notMadeAttempted = items.length - madeAttempted
+
+  return NextResponse.json({
+    success: true,
+    madeAttempted,
+    notMadeAttempted,
+    sent: result.succeeded,
+    failed: result.failed,
+    failures: result.failures,
+  })
 }
