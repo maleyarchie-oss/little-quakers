@@ -12,6 +12,37 @@ export default function RegistrantsTable({ registrants }: { registrants: Registr
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  // Inline email editing
+  const [editingEmailId, setEditingEmailId] = useState<string | null>(null)
+  const [emailDraft, setEmailDraft] = useState('')
+  const [savingEmail, setSavingEmail] = useState(false)
+
+  async function saveEmail(id: string) {
+    setErrorMsg(null)
+    const trimmed = emailDraft.trim()
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setErrorMsg('Please enter a valid email address.')
+      return
+    }
+    setSavingEmail(true)
+    try {
+      const res = await fetch(`/api/admin/registrants/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: trimmed }),
+      })
+      const body = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(body?.error || 'Update failed')
+      setRows(prev => prev.map(r => (r.id === id ? { ...r, email: trimmed } : r)))
+      setEditingEmailId(null)
+      setEmailDraft('')
+      router.refresh()
+    } catch (e) {
+      setErrorMsg(e instanceof Error ? e.message : 'Update failed')
+    } finally {
+      setSavingEmail(false)
+    }
+  }
 
   async function deleteRegistrant(id: string) {
     setErrorMsg(null)
@@ -108,7 +139,43 @@ export default function RegistrantsTable({ registrants }: { registrants: Registr
                   <p>{r.caregiver_first_name} {r.caregiver_last_name}</p>
                   <p className="text-gray-400 text-xs">{r.phone}</p>
                 </td>
-                <td className="px-4 py-3 text-gray-600 text-xs">{r.email}</td>
+                <td className="px-4 py-3 text-gray-600 text-xs">
+                  {editingEmailId === r.id ? (
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="email"
+                        value={emailDraft}
+                        onChange={e => setEmailDraft(e.target.value)}
+                        className="border border-gray-300 rounded px-2 py-1 text-xs flex-1 min-w-0"
+                        autoFocus
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') saveEmail(r.id)
+                          if (e.key === 'Escape') { setEditingEmailId(null); setEmailDraft('') }
+                        }}
+                      />
+                      <button
+                        onClick={() => saveEmail(r.id)}
+                        disabled={savingEmail}
+                        className="text-xs bg-green-600 text-white px-2 py-1 rounded disabled:opacity-40"
+                        title="Save"
+                      >✓</button>
+                      <button
+                        onClick={() => { setEditingEmailId(null); setEmailDraft('') }}
+                        className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded"
+                        title="Cancel"
+                      >✕</button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="break-all">{r.email}</span>
+                      <button
+                        onClick={() => { setEditingEmailId(r.id); setEmailDraft(r.email); setErrorMsg(null) }}
+                        className="text-xs text-blue-600 hover:underline shrink-0"
+                        title="Edit email"
+                      >edit</button>
+                    </div>
+                  )}
+                </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-1">
                     {r.birth_certificate_url ? (
