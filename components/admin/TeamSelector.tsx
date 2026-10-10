@@ -69,6 +69,10 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
   // Test-send state
   const [testEmail, setTestEmail] = useState('')
   const [testSending, setTestSending] = useState(false)
+  // Email groups to BCC (fetched on modal open)
+  type GroupSummary = { id: string; name: string; count: number }
+  const [bccGroups, setBccGroups] = useState<GroupSummary[]>([])
+  const [selectedGroupIds, setSelectedGroupIds] = useState<Set<string>>(new Set())
 
   const existing = registrants.filter(r => r.status === 'made_team').map(r => r.id)
 
@@ -155,9 +159,12 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
     setPreviewLoading(true)
     setPreviewOpen(true)
     try {
-      const res = await fetch('/api/admin/team?preview=1')
-      if (!res.ok) throw new Error('preview failed')
-      const data = await res.json()
+      const [previewRes, groupsRes] = await Promise.all([
+        fetch('/api/admin/team?preview=1'),
+        fetch('/api/admin/email-groups'),
+      ])
+      if (!previewRes.ok) throw new Error('preview failed')
+      const data = await previewRes.json()
       const made: PreviewRow[] = data.made || []
       const notMade: PreviewRow[] = data.notMade || []
       setPreviewMade(made)
@@ -165,6 +172,16 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
       // Default: everyone checked. PJ can uncheck anyone he doesn't want to email.
       setSelectedMade(new Set(made.map(r => r.id)))
       setSelectedNotMade(new Set(notMade.map(r => r.id)))
+      if (groupsRes.ok) {
+        const gData = await groupsRes.json()
+        type GroupResp = { id: string; name: string; contacts?: { id: string }[] }
+        const list: GroupSummary[] = ((gData.groups as GroupResp[]) || []).map((g) => ({
+          id: g.id,
+          name: g.name,
+          count: (g.contacts || []).length,
+        }))
+        setBccGroups(list)
+      }
     } catch {
       setError('Could not load preview. Please try again.')
       setPreviewOpen(false)
@@ -203,6 +220,15 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
     setRecipients('made_only')
     setSelectedMade(new Set())
     setSelectedNotMade(new Set())
+    setSelectedGroupIds(new Set())
+  }
+
+  const toggleGroup = (id: string) => {
+    setSelectedGroupIds(s => {
+      const next = new Set(s)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
   }
 
   // What IDs we'd actually send to given current UI selections
@@ -220,6 +246,7 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
     customMadeBody: customMadeBody.trim() || undefined,
     customNotMadeSubject: customNotMadeSubject.trim() || undefined,
     customNotMadeBody: customNotMadeBody.trim() || undefined,
+    bccGroupIds: Array.from(selectedGroupIds),
     ...extra,
   })
 
@@ -448,6 +475,34 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
                       </div>
                     </div>
                   )}
+
+                  {/* BCC: email groups */}
+                  <div className="border border-purple-200 rounded-lg p-4 bg-purple-50 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-bold uppercase tracking-widest text-purple-800">BCC email groups (optional)</p>
+                      <a href="/admin/email-groups" target="_blank" rel="noopener" className="text-xs text-purple-700 hover:underline">Manage groups ↗</a>
+                    </div>
+                    <p className="text-xs text-purple-700">Everyone in the selected groups will be BCC'd on every email in this batch.</p>
+                    {bccGroups.length === 0 ? (
+                      <p className="text-xs text-gray-500 italic">No groups yet. Create one on the Email Groups page.</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {bccGroups.map(g => {
+                          const active = selectedGroupIds.has(g.id)
+                          return (
+                            <button
+                              key={g.id}
+                              type="button"
+                              onClick={() => toggleGroup(g.id)}
+                              className={`text-xs px-3 py-1.5 rounded-full border ${active ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-purple-800 border-purple-300 hover:bg-purple-100'}`}
+                            >
+                              {active ? '✓ ' : ''}{g.name} ({g.count})
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
 
                   {/* Test send: fire one copy to an email address for preview */}
                   <div className="border border-blue-200 rounded-lg p-4 bg-blue-50 space-y-2">

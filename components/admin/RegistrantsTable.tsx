@@ -16,6 +16,40 @@ export default function RegistrantsTable({ registrants }: { registrants: Registr
   const [editingEmailId, setEditingEmailId] = useState<string | null>(null)
   const [emailDraft, setEmailDraft] = useState('')
   const [savingEmail, setSavingEmail] = useState(false)
+  // Add-player modal
+  const [addOpen, setAddOpen] = useState(false)
+  const [addSaving, setAddSaving] = useState(false)
+  const emptyAdd = {
+    player_first_name: '', player_last_name: '',
+    email: '', phone: '',
+    caregiver_first_name: '', caregiver_last_name: '',
+    grade: '', position_desired: '',
+    status: 'made_team' as 'made_team' | 'registered' | 'not_made_team',
+  }
+  const [addDraft, setAddDraft] = useState(emptyAdd)
+
+  async function createPlayer() {
+    setErrorMsg(null)
+    setAddSaving(true)
+    try {
+      const res = await fetch('/api/admin/registrants', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(addDraft),
+      })
+      const body = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(body?.error || 'Create failed')
+      // Add to local state so it shows up immediately
+      setRows(prev => [body.registrant, ...prev])
+      setAddOpen(false)
+      setAddDraft(emptyAdd)
+      router.refresh()
+    } catch (e) {
+      setErrorMsg(e instanceof Error ? e.message : 'Create failed')
+    } finally {
+      setAddSaving(false)
+    }
+  }
 
   async function saveEmail(id: string) {
     setErrorMsg(null)
@@ -107,7 +141,89 @@ export default function RegistrantsTable({ registrants }: { registrants: Registr
         <button className="btn-black py-3 px-5 text-sm" onClick={exportCSV}>
           ⬇ Export CSV
         </button>
+        <button className="bg-green-600 text-white font-bold py-3 px-5 text-sm rounded-lg" onClick={() => { setErrorMsg(null); setAddOpen(true) }}>
+          + Add Player
+        </button>
       </div>
+
+      {addOpen && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setAddOpen(false)}>
+          <div className="bg-white rounded-xl w-full max-w-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div>
+              <h2 className="text-xl font-black">Add Player</h2>
+              <p className="text-sm text-gray-500 mt-1">For players who skipped the public registration (e.g., invited directly). They'll be added as Made Team by default.</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-semibold text-gray-600 block mb-1">Player first name *</label>
+                <input className="form-input w-full" value={addDraft.player_first_name} onChange={e => setAddDraft(d => ({ ...d, player_first_name: e.target.value }))} />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-600 block mb-1">Player last name *</label>
+                <input className="form-input w-full" value={addDraft.player_last_name} onChange={e => setAddDraft(d => ({ ...d, player_last_name: e.target.value }))} />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-600 block mb-1">Grade *</label>
+                <select className="form-input w-full" value={addDraft.grade} onChange={e => setAddDraft(d => ({ ...d, grade: e.target.value }))}>
+                  <option value="">— pick —</option>
+                  <option value="5th">5th</option>
+                  <option value="6th">6th</option>
+                  <option value="7th">7th</option>
+                  <option value="8th">8th</option>
+                  <option value="9th">9th</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-600 block mb-1">Position *</label>
+                <select className="form-input w-full" value={addDraft.position_desired} onChange={e => setAddDraft(d => ({ ...d, position_desired: e.target.value }))}>
+                  <option value="">— pick —</option>
+                  <option>Quarterback</option>
+                  <option>Running Back</option>
+                  <option>Wide Receiver</option>
+                  <option>Tight End</option>
+                  <option>Offensive Lineman</option>
+                  <option>Defensive Lineman</option>
+                  <option>Linebacker</option>
+                  <option>Cornerback</option>
+                  <option>Safety</option>
+                  <option>Kicker</option>
+                  <option>Punter</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-600 block mb-1">Caregiver first name *</label>
+                <input className="form-input w-full" value={addDraft.caregiver_first_name} onChange={e => setAddDraft(d => ({ ...d, caregiver_first_name: e.target.value }))} />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-600 block mb-1">Caregiver last name *</label>
+                <input className="form-input w-full" value={addDraft.caregiver_last_name} onChange={e => setAddDraft(d => ({ ...d, caregiver_last_name: e.target.value }))} />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-600 block mb-1">Caregiver email *</label>
+                <input type="email" className="form-input w-full" value={addDraft.email} onChange={e => setAddDraft(d => ({ ...d, email: e.target.value }))} />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-600 block mb-1">Caregiver phone *</label>
+                <input type="tel" className="form-input w-full" value={addDraft.phone} onChange={e => setAddDraft(d => ({ ...d, phone: e.target.value }))} />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="text-xs font-semibold text-gray-600 block mb-1">Initial status</label>
+                <select className="form-input w-full" value={addDraft.status} onChange={e => setAddDraft(d => ({ ...d, status: e.target.value as 'made_team' | 'registered' | 'not_made_team' }))}>
+                  <option value="made_team">Made Team (default)</option>
+                  <option value="registered">Registered (not yet selected)</option>
+                  <option value="not_made_team">Not Made Team</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
+              <button onClick={() => setAddOpen(false)} className="px-4 py-2 text-sm">Cancel</button>
+              <button onClick={createPlayer} disabled={addSaving} className="btn-black px-5 py-2 text-sm disabled:opacity-40">
+                {addSaving ? 'Adding…' : 'Add player'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {errorMsg && (
         <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">

@@ -129,9 +129,23 @@ export async function PUT(req: NextRequest) {
   const customNotMadeSubject = typeof body.customNotMadeSubject === 'string' && body.customNotMadeSubject.trim() ? body.customNotMadeSubject.trim() : null
   const customNotMadeBody = typeof body.customNotMadeBody === 'string' && body.customNotMadeBody.trim() ? body.customNotMadeBody : null
   const testEmail = typeof body.testEmail === 'string' && body.testEmail.trim() ? body.testEmail.trim() : null
+  const bccGroupIds = Array.isArray((body as { bccGroupIds?: unknown }).bccGroupIds)
+    ? ((body as { bccGroupIds: unknown[] }).bccGroupIds as string[])
+    : []
 
   if (!Array.isArray(rosterIds)) {
     return NextResponse.json({ error: 'rosterIds array required' }, { status: 400 })
+  }
+
+  // Resolve BCC group ids to the actual email list. These are appended to the
+  // existing MADE_TEAM_BCC env fallback so coaches still get copies by default.
+  let groupBccEmails: string[] = []
+  if (bccGroupIds.length > 0) {
+    const { data: contacts } = await supabaseAdmin
+      .from('email_group_contacts')
+      .select('email')
+      .in('group_id', bccGroupIds)
+    groupBccEmails = Array.from(new Set((contacts || []).map(c => c.email).filter(Boolean)))
   }
 
   const { data: settings } = await supabaseAdmin.from('settings').select('*').single()
@@ -167,7 +181,7 @@ export async function PUT(req: NextRequest) {
         payload: {
           from: FROM(),
           to: r.email,
-          bcc: MADE_TEAM_BCC(),
+          bcc: Array.from(new Set([...MADE_TEAM_BCC(), ...groupBccEmails])),
           replyTo: REPLY_TO(),
           subject,
           html: wrapInTemplate(playerName, bodyText),
@@ -189,6 +203,7 @@ export async function PUT(req: NextRequest) {
         payload: {
           from: FROM(),
           to: r.email,
+          bcc: groupBccEmails.length > 0 ? groupBccEmails : undefined,
           replyTo: REPLY_TO(),
           subject,
           html: wrapInTemplate(playerName, bodyText),
