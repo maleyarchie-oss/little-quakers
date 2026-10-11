@@ -120,8 +120,12 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
     setSaved(false)
   }, [pool, roster])
 
-  const saveRoster = async () => {
-    setSaving(true); setError(''); setMessage('')
+  // When called from the Save button: shows normal UI feedback.
+  // When called from openPreview (silent=true): no success toast, but errors
+  // still surface so we can abort opening the modal.
+  const saveRoster = async (silent = false): Promise<boolean> => {
+    setSaving(true)
+    if (!silent) { setError(''); setMessage('') }
     try {
       const res = await fetch('/api/admin/team', {
         method: 'POST',
@@ -143,19 +147,25 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
       }
       if (!res.ok) throw new Error(serverMessage || 'Failed to save')
       setSaved(true)
-      setMessage('Roster saved successfully!')
+      if (!silent) setMessage('Roster saved successfully!')
+      return true
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Failed to save roster'
       setError(`Failed to save roster: ${msg}`)
+      return false
     } finally {
       setSaving(false)
     }
   }
 
-  // Open the preview modal: fetch the actual recipient lists from the server
-  // so what PJ sees matches reality (not just what's in client state).
+  // Open the preview modal: auto-save the current roster first (so what we
+  // email matches what's on screen), then fetch recipient lists from the
+  // server. Removes the old 'click Save first' UX trap.
   const openPreview = async () => {
     setError(''); setMessage('')
+    // Auto-save silently. If it fails, bail out before opening the modal.
+    const ok = await saveRoster(true)
+    if (!ok) return
     setPreviewLoading(true)
     setPreviewOpen(true)
     try {
@@ -330,7 +340,7 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
         <div className="flex gap-3">
           <button
             className="btn-primary py-2 px-5 text-sm"
-            onClick={saveRoster}
+            onClick={() => saveRoster()}
             disabled={saving}
           >
             {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save Roster'}
@@ -338,8 +348,8 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
           <button
             className="btn-black py-2 px-5 text-sm"
             onClick={openPreview}
-            disabled={sendingEmails || !saved}
-            title={!saved ? 'Save roster first' : ''}
+            disabled={sendingEmails || saving}
+            title=""
           >
             {sendingEmails ? 'Sending…' : 'Send Team Emails…'}
           </button>
