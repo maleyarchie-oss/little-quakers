@@ -5,7 +5,10 @@ import Header from '@/components/ui/Header'
 import Footer from '@/components/ui/Footer'
 
 export default function ContactPage() {
-  const [form, setForm] = useState({ name: '', email: '', phone: '', message: '' })
+  // 'website' is the honeypot field — hidden from humans via CSS, filled by
+  // dumb bots that scrape every input. We send it to the API and reject on
+  // any non-empty value. Must stay in state so React controls it.
+  const [form, setForm] = useState({ name: '', email: '', phone: '', message: '', website: '' })
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState('')
@@ -103,6 +106,22 @@ export default function ContactPage() {
               ) : (
                 <form onSubmit={submit} className="card space-y-5">
                   <h2 className="text-2xl font-black mb-1">Send a Message</h2>
+                  {/* HONEYPOT: hidden from users, catches dumb bots that fill every input. */}
+                  <div
+                    aria-hidden="true"
+                    style={{ position: 'absolute', left: '-10000px', top: 'auto', width: '1px', height: '1px', overflow: 'hidden' }}
+                  >
+                    <label htmlFor="website">Website (leave blank)</label>
+                    <input
+                      type="text"
+                      id="website"
+                      name="website"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      value={form.website}
+                      onChange={e => setForm(f => ({ ...f, website: e.target.value }))}
+                    />
+                  </div>
                   <div>
                     <label className="form-label">Your Name *</label>
                     <input
