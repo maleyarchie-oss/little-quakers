@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { sendGolfRegistrationReceivedEmail } from '@/lib/email'
+import { antiSpamGuard } from '@/lib/anti-spam'
 
 type Tier = 'individual' | 'foursome' | 'hole_sponsor' | 'lq_legends' | 'levy_platinum'
 
@@ -35,6 +36,14 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
+
+  // Shared defenses: honeypot, IP rate limit, gibberish filter, length cap.
+  // Scan the free-text fields that bots tend to abuse.
+  const blocked = antiSpamGuard(req, body, {
+    endpoint: 'golf-outing',
+    gibberishCheckFields: ['first_name', 'last_name', 'sponsor_display_name', 'notes'],
+  })
+  if (blocked) return blocked
 
   const tier = body.tier
   if (!isValidTier(tier)) {

@@ -25,6 +25,10 @@ export default function GolfOutingRegistration() {
   const [partner3_name, setP3] = useState('')
   const [sponsor_display_name, setSponsorName] = useState('')
   const [notes, setNotes] = useState('')
+  // 'website' is the honeypot — hidden off-screen, dumb bots fill every input.
+  // On the server any non-empty value triggers fake-success and we drop the
+  // registration before it hits the DB.
+  const [website, setWebsite] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState<string | null>(null)
@@ -80,6 +84,7 @@ export default function GolfOutingRegistration() {
           partner3_name: tierInfo.producesFoursome ? partner3_name : undefined,
           sponsor_display_name: tierInfo.sponsorshipName ? sponsor_display_name : undefined,
           notes,
+          website, // honeypot — real users leave blank
         }),
       })
       const json = await res.json()
@@ -107,6 +112,23 @@ export default function GolfOutingRegistration() {
       onSubmit={submit}
       className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 space-y-6"
     >
+      {/* HONEYPOT: hidden off-screen, catches dumb bots that fill every input. */}
+      <div
+        aria-hidden="true"
+        style={{ position: 'absolute', left: '-10000px', top: 'auto', width: '1px', height: '1px', overflow: 'hidden' }}
+      >
+        <label htmlFor="golf-website">Website (leave blank)</label>
+        <input
+          type="text"
+          id="golf-website"
+          name="website"
+          tabIndex={-1}
+          autoComplete="off"
+          value={website}
+          onChange={e => setWebsite(e.target.value)}
+        />
+      </div>
+
       {/* Tier selector */}
       <div>
         <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider">
