@@ -489,10 +489,10 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
                   {/* BCC: email groups */}
                   <div className="border border-purple-200 rounded-lg p-4 bg-purple-50 space-y-2">
                     <div className="flex items-center justify-between">
-                      <p className="text-xs font-bold uppercase tracking-widest text-purple-800">BCC email groups (optional)</p>
+                      <p className="text-xs font-bold uppercase tracking-widest text-purple-800">Email a summary to groups (optional)</p>
                       <a href="/admin/email-groups" target="_blank" rel="noopener" className="text-xs text-purple-700 hover:underline">Manage groups ↗</a>
                     </div>
-                    <p className="text-xs text-purple-700">Everyone in the selected groups will be BCC'd on every email in this batch.</p>
+                    <p className="text-xs text-purple-700">Each person in the selected groups gets <strong>one</strong> summary email listing what went out and to whom. (No more spam inbox.)</p>
                     {bccGroups.length === 0 ? (
                       <p className="text-xs text-gray-500 italic">No groups yet. Create one on the Email Groups page.</p>
                     ) : (

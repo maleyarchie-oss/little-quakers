@@ -137,15 +137,25 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: 'rosterIds array required' }, { status: 400 })
   }
 
-  // Resolve BCC group ids to the actual email list. These are appended to the
-  // existing MADE_TEAM_BCC env fallback so coaches still get copies by default.
-  let groupBccEmails: string[] = []
+  // Resolve BCC group ids to a de-duplicated list of coach contacts.
+  // IMPORTANT: these are NOT added as BCC on every per-player email (that was
+  // the old buggy behavior that spammed each coach with 39 copies). Instead,
+  // after the batch sends, we fire ONE summary email per coach listing what
+  // went out. Clean inbox, same information.
+  let groupContacts: { name: string; email: string }[] = []
   if (bccGroupIds.length > 0) {
     const { data: contacts } = await supabaseAdmin
       .from('email_group_contacts')
-      .select('email')
+      .select('name, email')
       .in('group_id', bccGroupIds)
-    groupBccEmails = Array.from(new Set((contacts || []).map(c => c.email).filter(Boolean)))
+    // De-dupe by lowercase email
+    const seen = new Set<string>()
+    for (const c of contacts || []) {
+      const key = c.email.toLowerCase()
+      if (seen.has(key)) continue
+      seen.add(key)
+      groupContacts.push({ name: c.name, email: c.email })
+    }
   }
 
   const { data: settings } = await supabaseAdmin.from('settings').select('*').single()
@@ -181,7 +191,7 @@ export async function PUT(req: NextRequest) {
         payload: {
           from: FROM(),
           to: r.email,
-          bcc: Array.from(new Set([...MADE_TEAM_BCC(), ...groupBccEmails])),
+          bcc: MADE_TEAM_BCC(),
           replyTo: REPLY_TO(),
           subject,
           html: wrapInTemplate(playerName, bodyText),
@@ -203,7 +213,6 @@ export async function PUT(req: NextRequest) {
         payload: {
           from: FROM(),
           to: r.email,
-          bcc: groupBccEmails.length > 0 ? groupBccEmails : undefined,
           replyTo: REPLY_TO(),
           subject,
           html: wrapInTemplate(playerName, bodyText),
@@ -248,6 +257,75 @@ export async function PUT(req: NextRequest) {
   const madeAttempted = items.filter(i => i.kind === 'made').length
   const notMadeAttempted = items.filter(i => i.kind === 'notMade').length
 
+  // -------------------------------------------------------------------
+  // Coaching Staff / Group digest
+  // Send ONE summary email per contact in the selected groups, listing
+  // what was sent and to whom. Replaces the old BCC-on-every behavior
+  // that generated 429 coach-mailbox copies for a 39-player batch.
+  // -------------------------------------------------------------------
+  if (groupContacts.length > 0 && items.length > 0) {
+    const sentAt = new Date().toLocaleString('en-US', {
+      timeZone: 'America/New_York',
+      dateStyle: 'full',
+      timeStyle: 'short',
+    })
+
+    const madeItems = items.filter(i => i.kind === 'made')
+    const notMadeItems = items.filter(i => i.kind === 'notMade')
+
+    // Build the digest body shared across all coaches
+    const summaryLines: string[] = []
+    summaryLines.push(`Team email batch sent ${sentAt} ET.`)
+    summaryLines.push('')
+    summaryLines.push(`<strong>Results:</strong> ${result.succeeded} sent, ${result.failed} failed.`)
+    summaryLines.push('')
+
+    if (madeItems.length > 0) {
+      summaryLines.push(`<strong>Made Team notifications (${madeItems.length}):</strong>`)
+      summaryLines.push('<em>Subject:</em> ' + madeItems[0].payload.subject)
+      summaryLines.push('')
+      summaryLines.push('Sent to:')
+      summaryLines.push('<ul>' + madeItems.map(i => `<li>${i.label} &lt;${i.email}&gt;</li>`).join('') + '</ul>')
+    }
+
+    if (notMadeItems.length > 0) {
+      summaryLines.push(`<strong>Not Made Team notifications (${notMadeItems.length}):</strong>`)
+      summaryLines.push('<em>Subject:</em> ' + notMadeItems[0].payload.subject)
+      summaryLines.push('')
+      summaryLines.push('Sent to:')
+      summaryLines.push('<ul>' + notMadeItems.map(i => `<li>${i.label} &lt;${i.email}&gt;</li>`).join('') + '</ul>')
+    }
+
+    if (result.failures.length > 0) {
+      summaryLines.push('')
+      summaryLines.push('<strong>Failures:</strong>')
+      summaryLines.push('<ul>' + result.failures.map(f => `<li>${f.label || '(unknown)'} &lt;${f.email}&gt; — ${f.reason}</li>`).join('') + '</ul>')
+    }
+
+    summaryLines.push('')
+    summaryLines.push('<em>This is an automated summary from the Little Quakers admin platform. Full copies of the emails sent are not included here — if you need the exact wording, ask PJ or Archie.</em>')
+
+    const digestHtml = summaryLines.join('<br>')
+    const digestSubject = `[Little Quakers Admin] Team email summary — ${madeItems.length} Made / ${notMadeItems.length} Not Made`
+
+    // One email per coach, personalized to "Dear [Coach Name]" via the
+    // template wrapper. Use bulkSend so throttle + retry logic applies.
+    const digestItems = groupContacts.map(c => ({
+      email: c.email,
+      label: c.name,
+      payload: {
+        from: FROM(),
+        to: c.email,
+        replyTo: REPLY_TO(),
+        subject: digestSubject,
+        html: wrapInTemplate(c.name, digestHtml),
+      },
+    }))
+
+    const digestResult = await bulkSend(digestItems)
+    console.log(`[team-emails] digest sent to ${digestResult.succeeded} coaches, ${digestResult.failed} failed`)
+  }
+
   return NextResponse.json({
     success: true,
     madeAttempted,
@@ -255,5 +333,6 @@ export async function PUT(req: NextRequest) {
     sent: result.succeeded,
     failed: result.failed,
     failures: result.failures,
+    coachDigestsSent: groupContacts.length,
   })
 }
