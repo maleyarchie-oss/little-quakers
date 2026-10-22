@@ -45,6 +45,18 @@ export async function POST(req: NextRequest) {
   })
   if (blocked) return blocked
 
+  // Guard: golf registration is admin-togglable (closed off-season)
+  const { data: openCheck } = await supabaseAdmin
+    .from('settings')
+    .select('golf_registration_open')
+    .single()
+  if (openCheck?.golf_registration_open === false) {
+    return NextResponse.json(
+      { error: 'Golf outing registration is currently closed. Please check back next summer.' },
+      { status: 403 }
+    )
+  }
+
   const tier = body.tier
   if (!isValidTier(tier)) {
     return NextResponse.json({ error: 'Invalid tier' }, { status: 400 })

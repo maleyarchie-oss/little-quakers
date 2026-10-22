@@ -4,6 +4,7 @@ import { useState } from 'react'
 
 interface Settings {
   registration_open: boolean
+  golf_registration_open: boolean
   tryout_date: string
   tryout_time: string
   tryout_location: string
@@ -25,6 +26,7 @@ interface Settings {
 export default function SettingsForm({ settings }: { settings: Settings | null }) {
   const [form, setForm] = useState<Settings>({
     registration_open: settings?.registration_open ?? false,
+    golf_registration_open: settings?.golf_registration_open ?? true,
     tryout_date: settings?.tryout_date ?? '',
     tryout_time: settings?.tryout_time ?? '',
     tryout_location: settings?.tryout_location ?? '',
@@ -45,6 +47,7 @@ export default function SettingsForm({ settings }: { settings: Settings | null }
   const [message, setMessage] = useState('')
   const [calendarCreating, setCalendarCreating] = useState(false)
   const [togglingReg, setTogglingReg] = useState(false)
+  const [togglingGolf, setTogglingGolf] = useState(false)
 
   const set = (k: keyof Settings, v: string | boolean) => setForm(f => ({ ...f, [k]: v }))
 
@@ -62,13 +65,34 @@ export default function SettingsForm({ settings }: { settings: Settings | null }
         body: JSON.stringify({ ...form, registration_open: next }),
       })
       if (!res.ok) throw new Error('save failed')
-      setMessage(next ? 'Registration is now OPEN.' : 'Registration is now CLOSED.')
+      setMessage(next ? 'Player registration is now OPEN.' : 'Player registration is now CLOSED.')
     } catch {
       // Revert optimistic UI change on failure
       set('registration_open', !next)
       setMessage('Could not save. Please try again.')
     } finally {
       setTogglingReg(false)
+    }
+  }
+
+  const toggleGolfRegistration = async () => {
+    const next = !form.golf_registration_open
+    set('golf_registration_open', next)
+    setTogglingGolf(true)
+    setMessage('')
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, golf_registration_open: next }),
+      })
+      if (!res.ok) throw new Error('save failed')
+      setMessage(next ? 'Golf Outing registration is now OPEN.' : 'Golf Outing registration is now CLOSED.')
+    } catch {
+      set('golf_registration_open', !next)
+      setMessage('Could not save. Please try again.')
+    } finally {
+      setTogglingGolf(false)
     }
   }
 
@@ -165,7 +189,35 @@ export default function SettingsForm({ settings }: { settings: Settings | null }
 
       {/* Golf Outing Stripe links */}
       <div className="card">
-        <h2 className="font-black text-xl mb-1">Golf Outing (Stripe)</h2>
+        <h2 className="font-black text-xl mb-5">Golf Outing</h2>
+
+        {/* Golf registration toggle */}
+        <div className="flex items-center gap-4 mb-6">
+          <button
+            type="button"
+            onClick={toggleGolfRegistration}
+            disabled={togglingGolf}
+            className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors disabled:opacity-60 ${
+              form.golf_registration_open ? 'bg-[#B8962A]' : 'bg-gray-300'
+            }`}
+            aria-label={form.golf_registration_open ? 'Close golf registration' : 'Open golf registration'}
+          >
+            <span className={`inline-block h-6 w-6 rounded-full bg-white shadow transition-transform ${
+              form.golf_registration_open ? 'translate-x-7' : 'translate-x-1'
+            }`} />
+          </button>
+          <span className="font-semibold">
+            Golf Outing Registration is <span className={form.golf_registration_open ? 'text-green-600' : 'text-gray-500'}>
+              {form.golf_registration_open ? 'OPEN' : 'CLOSED'}
+            </span>
+            {togglingGolf && (
+              <span className="ml-2 text-xs text-gray-500 font-normal">saving…</span>
+            )}
+          </span>
+        </div>
+        <p className="text-gray-500 text-xs mb-6">When closed, the public /events/golf-outing page shows a &quot;see you next year&quot; message instead of the registration form.</p>
+
+        <h3 className="font-bold text-sm uppercase tracking-widest text-gray-500 mb-2">Stripe Payment Links</h3>
         <p className="text-gray-500 text-sm mb-5">One Stripe Payment Link per tier. Leave a field blank and that tier's registration will be saved without redirect to Stripe (we'll follow up manually).</p>
         <div className="space-y-4">
           <div>

@@ -51,6 +51,7 @@ export interface RosterPlayer extends Registrant {
 
 export interface Settings {
   registration_open: boolean
+  golf_registration_open: boolean
   tryout_date: string
   tryout_time: string
   tryout_location: string

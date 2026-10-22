@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import HeaderServer from '@/components/ui/HeaderServer'
 import Footer from '@/components/ui/Footer'
 import GolfOutingRegistration from '@/components/events/GolfOutingRegistration'
+import { supabaseAdmin } from '@/lib/supabase'
 
 export const metadata = {
   title: 'Golf Outing | Philadelphia Little Quakers',
@@ -25,7 +26,14 @@ const INCLUDED = [
   'Giveaways',
 ]
 
-export default function GolfOutingPage() {
+export default async function GolfOutingPage() {
+  // Admin can close registration between outings. Default: open.
+  const { data: settings } = await supabaseAdmin
+    .from('settings')
+    .select('golf_registration_open')
+    .single()
+  const registrationOpen = settings?.golf_registration_open !== false
+
   return (
     <div className="flex flex-col min-h-screen">
       <HeaderServer />
@@ -203,11 +211,33 @@ export default function GolfOutingPage() {
             <h2 className="text-3xl md:text-4xl font-black mb-3 text-center">
               Register
             </h2>
-            <p className="text-gray-600 text-center mb-10 max-w-xl mx-auto">
-              Choose a tier, fill out your details, and we&apos;ll send you over
-              to Stripe to complete your payment.
-            </p>
-            <GolfOutingRegistration />
+            {registrationOpen ? (
+              <>
+                <p className="text-gray-600 text-center mb-10 max-w-xl mx-auto">
+                  Choose a tier, fill out your details, and we&apos;ll send you over
+                  to Stripe to complete your payment.
+                </p>
+                <GolfOutingRegistration />
+              </>
+            ) : (
+              <div className="max-w-2xl mx-auto text-center bg-white rounded-2xl border border-gray-200 shadow-sm px-6 md:px-10 py-12">
+                <p className="text-5xl mb-4">⛳</p>
+                <h3 className="text-2xl md:text-3xl font-black mb-3">
+                  Registration Is Closed
+                </h3>
+                <p className="text-gray-600 text-lg leading-relaxed max-w-lg mx-auto">
+                  The 2026 Little Quakers Golf Outing is a wrap. Thank you to
+                  everyone who played, sponsored, or supported the day. Watch
+                  this space next summer for details on the 2027 outing.
+                </p>
+                <p className="text-gray-500 text-sm mt-6">
+                  Questions? Email{' '}
+                  <a href="mailto:info@littlequakers.us" className="text-[#B8962A] font-semibold hover:underline">
+                    info@littlequakers.us
+                  </a>
+                </p>
+              </div>
+            )}
           </div>
         </section>
 
