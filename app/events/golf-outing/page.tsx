@@ -220,23 +220,84 @@ export default async function GolfOutingPage() {
                 <GolfOutingRegistration />
               </>
             ) : (
-              <div className="max-w-2xl mx-auto text-center bg-white rounded-2xl border border-gray-200 shadow-sm px-6 md:px-10 py-12">
-                <p className="text-5xl mb-4">⛳</p>
-                <h3 className="text-2xl md:text-3xl font-black mb-3">
-                  Registration Is Closed
-                </h3>
-                <p className="text-gray-600 text-lg leading-relaxed max-w-lg mx-auto">
-                  The 2026 Little Quakers Golf Outing is a wrap. Thank you to
-                  everyone who played, sponsored, or supported the day. Watch
-                  this space next summer for details on the 2027 outing.
-                </p>
-                <p className="text-gray-500 text-sm mt-6">
-                  Questions? Email{' '}
-                  <a href="mailto:info@littlequakers.us" className="text-[#B8962A] font-semibold hover:underline">
-                    info@littlequakers.us
-                  </a>
-                </p>
-              </div>
+              <>
+                <div className="max-w-2xl mx-auto text-center bg-white rounded-2xl border border-gray-200 shadow-sm px-6 md:px-10 py-12">
+                  <p className="text-5xl mb-4">⛳</p>
+                  <h3 className="text-2xl md:text-3xl font-black mb-3">
+                    Registration Is Closed
+                  </h3>
+                  <p className="text-gray-600 text-lg leading-relaxed max-w-lg mx-auto">
+                    The 2026 Little Quakers Golf Outing is a wrap. Thank you to
+                    everyone who played, sponsored, or supported the day. Watch
+                    this space next summer for details on the 2027 outing.
+                  </p>
+                  <p className="text-gray-500 text-sm mt-6">
+                    Questions? Email{' '}
+                    <a href="mailto:info@littlequakers.us" className="text-[#B8962A] font-semibold hover:underline">
+                      info@littlequakers.us
+                    </a>
+                  </p>
+                </div>
+
+                {/* 2026 Recap Gallery */}
+                <div className="max-w-6xl mx-auto mt-20">
+                  <div className="text-center mb-10">
+                    <p className="text-[#B8962A] font-bold uppercase tracking-widest text-sm mb-3">
+                      October 19, 2026 · Bluestone Country Club
+                    </p>
+                    <h3 className="text-3xl md:text-4xl font-black mb-3">
+                      Scenes from the 2026 Outing
+                    </h3>
+                    <p className="text-gray-600 max-w-xl mx-auto">
+                      Perfect weather, a packed field, a champion crowned.
+                      Here&apos;s a look at the day.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {/* Row 1: hero image, spans 2 cols on large */}
+                    <div className="lg:col-span-2 lg:row-span-2 relative aspect-[4/3] lg:aspect-auto overflow-hidden rounded-xl bg-gray-100">
+                      <img
+                        src="/golf-2026/foursome-tee.jpg"
+                        alt="A foursome on the tee at Bluestone Country Club"
+                        className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                    <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-gray-100">
+                      <img
+                        src="/golf-2026/women-group.jpg"
+                        alt="Little Quakers crew on the course"
+                        className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                    <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-gray-100">
+                      <img
+                        src="/golf-2026/champions-trophy.jpg"
+                        alt="The 2026 winning foursome with the Little Quakers Cup"
+                        className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                    <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-gray-100">
+                      <img
+                        src="/golf-2026/registration-table.jpg"
+                        alt="Players checking in at the registration table"
+                        className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                    <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-gray-100">
+                      <img
+                        src="/golf-2026/sunset-cigars.jpg"
+                        alt="End of the day on the Bluestone patio"
+                        className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                  </div>
+
+                  <p className="text-center text-gray-500 text-sm mt-8 italic">
+                    Thanks to every golfer, sponsor, and volunteer who made the 2026 outing one for the books.
+                  </p>
+                </div>
+              </>
             )}
           </div>
         </section>
