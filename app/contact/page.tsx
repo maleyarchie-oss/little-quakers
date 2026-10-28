@@ -84,14 +84,11 @@ export default function ContactPage() {
               </div>
 
               <div className="mt-10 bg-[#0A0A0A] rounded-2xl p-6 text-white">
-                <p className="text-[#B8962A] font-bold text-sm uppercase tracking-widest mb-3">2026 Tryouts</p>
-                <h3 className="text-2xl font-black mb-2">Registration Is Open</h3>
+                <p className="text-[#B8962A] font-bold text-sm uppercase tracking-widest mb-3">2027 Season</p>
+                <h3 className="text-2xl font-black mb-2">Interested in Playing in 2027?</h3>
                 <p className="text-gray-400 text-sm mb-5">
-                  Think you have what it takes? Register now and compete for one of 35–40 spots on Philadelphia's premier youth football team.
+                  The 2026 roster is set and the team is practicing. Drop us a note using the form and we&apos;ll keep you posted when tryouts open for the 2027 season.
                 </p>
-                <a href="/register" className="btn-primary text-base px-6 py-3 inline-block">
-                  Register for Tryouts
-                </a>
               </div>
             </div>
 
