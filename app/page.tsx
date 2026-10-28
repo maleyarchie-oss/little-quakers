@@ -58,8 +58,8 @@ export default async function Home() {
                   Register for Tryouts →
                 </Link>
               ) : (
-                <Link href="/events/golf-outing" className="btn-primary text-lg px-10 py-4">
-                  Golf Outing · Oct 19
+                <Link href="/contact" className="btn-primary text-lg px-10 py-4">
+                  Get Notified for 2027
                 </Link>
               )}
               <Link href="/about" className="btn-secondary text-lg px-10 py-4">
@@ -236,16 +236,13 @@ export default async function Home() {
               <>
                 <p className="text-[#B8962A] font-bold uppercase tracking-widest text-sm mb-4">2026 Season</p>
                 <h2 className="text-4xl md:text-5xl font-black text-white mb-6 leading-tight">
-                  Tryouts Complete.<br />Now for the Golf Outing.
+                  The Season Is Underway.
                 </h2>
                 <p className="text-gray-400 text-lg mb-10 leading-relaxed">
-                  Thank you to every family who tried out for the 2026 Little Quakers. The roster is being finalized. Next up: our annual Golf Outing at Bluestone Country Club on October 19.
+                  Thank you to every family who tried out for the 2026 Little Quakers. The roster is set and the team is practicing. Interested in joining us next year? Drop your info and we&apos;ll keep you posted on 2027 tryouts.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link href="/events/golf-outing" className="btn-primary text-xl px-14 py-5">
-                    Golf Outing · Oct 19
-                  </Link>
-                  <Link href="/contact" className="btn-secondary text-lg px-10 py-4">
+                  <Link href="/contact" className="btn-primary text-xl px-14 py-5">
                     Get Notified for 2027
                   </Link>
                 </div>
