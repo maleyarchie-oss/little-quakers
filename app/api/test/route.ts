@@ -4,17 +4,16 @@ import { supabaseAdmin } from '@/lib/supabase'
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
-  // Broader search for Hickerson and Thompson plus Nuri + Spurlark
-  const { data, error } = await supabaseAdmin
-    .from('registrants')
-    .select('player_first_name, player_last_name, caregiver_first_name, caregiver_last_name, email, phone, status')
-    .or(
-      'player_last_name.ilike.%hickerson%,player_last_name.ilike.%thompson%,player_last_name.ilike.%nuri%,player_last_name.ilike.%spurlark%,player_first_name.ilike.%rashee%,player_first_name.ilike.%mekhi%,player_first_name.ilike.%nabi%,player_first_name.ilike.%royal%'
-    )
+  const { data, error, count } = await supabaseAdmin
+    .from('admin_users')
+    .select('id, name, username', { count: 'exact' })
 
   return NextResponse.json({
+    connected: !error,
     error: error?.message || null,
-    count: data?.length ?? 0,
-    players: data,
+    count,
+    users: data?.map(u => ({ id: u.id, name: u.name, username: u.username })) || [],
+    url_set: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+    key_set: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
   })
 }
