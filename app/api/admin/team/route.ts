@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { getSession } from '@/lib/auth'
 import { bulkSend, wrapInTemplate, FROM, REPLY_TO, MADE_TEAM_BCC } from '@/lib/email'
+import { logStatusChangeBatch } from '@/lib/audit'
 
 // Save roster selections
 export async function POST(req: NextRequest) {
@@ -16,6 +17,24 @@ export async function POST(req: NextRequest) {
   }
   const rosterIds = Array.isArray(body.rosterIds) ? (body.rosterIds as string[]) : []
   const poolIds = Array.isArray(body.poolIds) ? (body.poolIds as string[]) : []
+
+  // Snapshot current status for everyone we're about to touch so the audit log
+  // can record the real before → after transitions (not noise where nothing
+  // actually changed).
+  const touchedIds = [...rosterIds, ...poolIds]
+  const beforeMap = new Map<string, { status: string; name: string }>()
+  if (touchedIds.length > 0) {
+    const { data: snapshot } = await supabaseAdmin
+      .from('registrants')
+      .select('id, status, player_first_name, player_last_name')
+      .in('id', touchedIds)
+    for (const row of snapshot || []) {
+      beforeMap.set(row.id, {
+        status: row.status,
+        name: `${row.player_first_name?.trim() || ''} ${row.player_last_name?.trim() || ''}`.trim(),
+      })
+    }
+  }
 
   // Supabase .in() with an empty array matches nothing (works), but can also
   // produce odd behavior across client versions. Short-circuit the no-op case
@@ -56,10 +75,42 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Database error: ${msg}` }, { status: 500 })
   }
 
+  // AUDIT: log only real transitions.
+  const changedBy = session.adminName || 'unknown'
+  const logs = []
+  for (const id of rosterIds) {
+    const before = beforeMap.get(id)
+    if (!before || before.status === 'made_team') continue // no-op
+    logs.push({
+      registrantId: id,
+      playerName: before.name,
+      fromStatus: before.status,
+      toStatus: 'made_team',
+      changedBy,
+      source: 'team_selection_save' as const,
+      note: `Save Roster (${rosterIds.length} on roster, ${poolIds.length} off)`,
+    })
+  }
+  for (const id of poolIds) {
+    const before = beforeMap.get(id)
+    if (!before || before.status === 'not_made_team') continue // no-op
+    logs.push({
+      registrantId: id,
+      playerName: before.name,
+      fromStatus: before.status,
+      toStatus: 'not_made_team',
+      changedBy,
+      source: 'team_selection_save' as const,
+      note: `Save Roster (${rosterIds.length} on roster, ${poolIds.length} off)`,
+    })
+  }
+  if (logs.length > 0) await logStatusChangeBatch(logs)
+
   return NextResponse.json({
     success: true,
     rosterUpdated: rosterIds.length,
     poolUpdated: poolIds.length,
+    auditLogged: logs.length,
   })
 }
 

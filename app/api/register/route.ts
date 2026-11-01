@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 
     const aptRaw = (get('apt_unit') || '').trim()
 
-    const { error } = await supabaseAdmin.from('registrants').insert({
+    const { data: inserted, error } = await supabaseAdmin.from('registrants').insert({
       player_first_name: get('player_first_name'),
       player_last_name: get('player_last_name'),
       birth_date: get('birth_date'),
@@ -74,11 +74,25 @@ export async function POST(req: NextRequest) {
       agreed_photo_release: get('agreed_photo_release') === 'true',
       status: 'registered',
       donated: get('donated') === 'true',
-    })
+    }).select('id').single()
 
     if (error) {
       console.error('DB insert error:', error)
       return NextResponse.json({ error: 'Failed to save registration.' }, { status: 500 })
+    }
+
+    // Audit: public registration created a new 'registered' record
+    if (inserted?.id) {
+      const { logStatusChange } = await import('@/lib/audit')
+      await logStatusChange({
+        registrantId: inserted.id,
+        playerName,
+        fromStatus: null,
+        toStatus: 'registered',
+        changedBy: 'public_registration',
+        source: 'public_registration',
+        note: 'Public /register form submission',
+      })
     }
 
     const email = get('email')

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { getSession } from '@/lib/auth'
+import { logStatusChange } from '@/lib/audit'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -87,6 +88,17 @@ export async function POST(req: NextRequest) {
     console.error('[admin/registrants/create] failed:', error)
     return NextResponse.json({ error: error.message || 'Failed to create registrant' }, { status: 500 })
   }
+
+  // Audit log: first-time insert, fromStatus is null
+  await logStatusChange({
+    registrantId: data.id,
+    playerName: `${data.player_first_name} ${data.player_last_name}`,
+    fromStatus: null,
+    toStatus: data.status,
+    changedBy: session.adminName || 'unknown',
+    source: 'registrants_create',
+    note: 'Admin add player form',
+  })
 
   return NextResponse.json({ success: true, registrant: data })
 }
