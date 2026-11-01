@@ -3,17 +3,18 @@ import { supabaseAdmin } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
 
+// Temporary: dig into Jamil Albarran's registration + status history.
 export async function GET() {
-  const { data, error, count } = await supabaseAdmin
-    .from('admin_users')
-    .select('id, name, username', { count: 'exact' })
+  const { data: player } = await supabaseAdmin
+    .from('registrants')
+    .select('*')
+    .ilike('player_last_name', '%Albarran%')
 
+  // Any coach-added vs public-registered marker? Check for completeness.
+  // Public-registered players would have birth_cert_url + report_card_url
+  // populated; admin-added players would have those blank.
   return NextResponse.json({
-    connected: !error,
-    error: error?.message || null,
-    count,
-    users: data?.map(u => ({ id: u.id, name: u.name, username: u.username })) || [],
-    url_set: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-    key_set: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    count: player?.length ?? 0,
+    player,
   })
 }
