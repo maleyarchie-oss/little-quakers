@@ -94,22 +94,34 @@ export default function TeamSelector({ registrants }: { registrants: Player[] })
     if (source.droppableId === destination.droppableId && source.index === destination.index) return
 
     if (source.droppableId === 'pool' && destination.droppableId === 'roster') {
-      const player = pool[source.index]
-      setPool(p => p.filter((_, i) => i !== source.index))
+      // BUG FIX (2026-11-01): the pool is rendered as `filteredPool` when a
+      // search filter is active, so source.index refers to the FILTERED list.
+      // Using pool[source.index] would grab the wrong player when any search
+      // was active. Instead, look up the dragged player by their React key
+      // (the registrant id baked into the Draggable), which matches regardless
+      // of filtering. This is the bug that let Jamil Albarran, Idris Ahmad
+      // etc. accidentally land on the roster.
+      const draggedId = result.draggableId
+      const player = pool.find(p => p.id === draggedId)
+      if (!player) return
+      setPool(p => p.filter(x => x.id !== draggedId))
       setRoster(r => {
         const next = [...r]
         next.splice(destination.index, 0, player)
         return next
       })
     } else if (source.droppableId === 'roster' && destination.droppableId === 'pool') {
-      const player = roster[source.index]
-      setRoster(r => r.filter((_, i) => i !== source.index))
+      const draggedId = result.draggableId
+      const player = roster.find(p => p.id === draggedId)
+      if (!player) return
+      setRoster(r => r.filter(x => x.id !== draggedId))
       setPool(p => {
         const next = [...p]
         next.splice(destination.index, 0, player)
         return next
       })
     } else if (source.droppableId === 'roster' && destination.droppableId === 'roster') {
+      // Within-roster reorder uses raw indices because the roster isn't filtered.
       setRoster(r => {
         const next = [...r]
         const [moved] = next.splice(source.index, 1)
