@@ -98,6 +98,24 @@ export default async function Home() {
           </div>
         </section>
 
+        {/* ── OPPORTUNITY KNOCKS BAND ── */}
+        <section className="bg-[#0A0A0A] text-white py-20 px-4 relative overflow-hidden">
+          {/* subtle gold accent bar at top */}
+          <div className="absolute inset-x-0 top-0 h-1 bg-[#B8962A]" />
+
+          <div className="relative max-w-5xl mx-auto text-center">
+            <p className="text-[#B8962A] font-bold uppercase tracking-widest text-sm mb-4">
+              Our Vision
+            </p>
+            <h2 className="text-5xl md:text-7xl font-black tracking-tight mb-6 leading-[0.95]">
+              <span className="text-[#B8962A]">#</span>OpportunityKnocks
+            </h2>
+            <p className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+              We provide opportunity to young athletes across the Philadelphia area regardless of family income. Opportunity to join a 70-year legacy. Opportunity to be coached by the best. Opportunity to earn their shot.
+            </p>
+          </div>
+        </section>
+
         {/* ── ABOUT SECTION ── */}
         <section className="py-20 px-4 bg-[#F5F4F0]">
           <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
