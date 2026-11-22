@@ -3,17 +3,30 @@ import { supabaseAdmin } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
-  const { data, error, count } = await supabaseAdmin
-    .from('admin_users')
-    .select('id, name, username', { count: 'exact' })
+// TEMP: fix school capitalization. Revert after.
+const FIXES: Array<{ match: [string, string]; school: string }> = [
+  { match: ['nasir', 'grant'], school: 'St. Malachy' },
+  { match: ['rashee', 'hickerson'], school: 'Sharon Hill Elementary School' },
+  { match: ['takai', 'jones'], school: 'DePaul Catholic School' },
+  { match: ['aiden', 'kostick'], school: 'Franklin Towne Charter' },
+  { match: ['liam', 'maloney'], school: 'Gwynedd Mercy Elementary' },
+  { match: ['ryan', 'panebianco'], school: 'Council Rock North' },
+  { match: ['david', 'remolde'], school: 'Immaculate Heart of Mary' },
+  { match: ['braylon', 'tygh'], school: 'Council Rock South' },
+  { match: ['benjamin', 'thomas'], school: 'William Tennent' },
+  { match: ['bryant', 'powell'], school: 'Spring-Ford' },
+]
 
-  return NextResponse.json({
-    connected: !error,
-    error: error?.message || null,
-    count,
-    users: data?.map(u => ({ id: u.id, name: u.name, username: u.username })) || [],
-    url_set: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-    key_set: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-  })
+export async function GET() {
+  const results: unknown[] = []
+  for (const fix of FIXES) {
+    const { data, error } = await supabaseAdmin
+      .from('registrants')
+      .update({ current_school: fix.school })
+      .ilike('player_first_name', `${fix.match[0]}%`)
+      .ilike('player_last_name', `${fix.match[1]}%`)
+      .select('id, player_first_name, player_last_name, current_school')
+    results.push({ fix: fix.school, error: error?.message || null, rows: data })
+  }
+  return NextResponse.json({ ok: true, results })
 }
