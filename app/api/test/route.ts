@@ -4,16 +4,18 @@ import { supabaseAdmin } from '@/lib/supabase'
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
-  const { data, error, count } = await supabaseAdmin
-    .from('admin_users')
-    .select('id, name, username', { count: 'exact' })
+  // TEMP: fill in Nate Glowacki's missing height/school. Revert after.
+  const { data, error } = await supabaseAdmin
+    .from('registrants')
+    .update({ height: '6\u20190\u201d', current_school: 'Strath Haven' })
+    .ilike('player_first_name', 'nate%')
+    .ilike('player_last_name', 'glowacki%')
+    .select('id, player_first_name, player_last_name, height, weight, current_school')
 
   return NextResponse.json({
-    connected: !error,
+    ok: !error,
     error: error?.message || null,
-    count,
-    users: data?.map(u => ({ id: u.id, name: u.name, username: u.username })) || [],
-    url_set: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-    key_set: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    updated_count: data?.length || 0,
+    rows: data || [],
   })
 }
